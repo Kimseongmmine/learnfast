@@ -7,7 +7,7 @@
 
 // ---- generic storage ----
 // 앱 이름. index.html·manifest.json 의 이름도 같이 맞출 것.
-const APP_NAME = "다시봄";
+const APP_NAME = "LearnFast";
 // OpenRouter 가 요청 출처로 쓴다. 배포한 주소를 그대로 쓰므로 손댈 것이 없다.
 const OR_REFERER = (typeof location !== "undefined" && location.origin) ? location.origin : "";
 
@@ -778,7 +778,7 @@ function applyImport(payload) {
 // 목표 하나를 통째로 남에게 줄 수 있는 형태로 만든다.
 // **개인 기록은 담지 않는다** — 상자·다음 차례·본 횟수·틀린 지점·세션은 전부 뺀다.
 // 받는 사람은 1번 상자부터 시작한다. 남의 진도가 내 진도가 되면 안 되기 때문.
-const PACK_APP = "dasibom-pack";
+const PACK_APP = "learnfast-pack";
 function packName(title) {
   return String(title || "과목").replace(/[\\/:*?"<>|]/g, "").trim().slice(0, 30) + " 팩.json";
 }
