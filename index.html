@@ -3,13 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>LOOP — 하루 계획을 AI가 대신 정해주는 실행 도구</title>
-  <meta name="description" content="내 상황(수업·리듬·목표)을 저장해두면 버튼 한 번에 AI가 하루를 시간대별로 짜줍니다. 핵심 3개만 하면 그날은 성공.">
-  <meta property="og:title" content="LOOP — 고민하지 말고, 정해진 대로">
-  <meta property="og:description" content="내 상황을 저장해두면 버튼 한 번에 AI가 하루를 시간대별로 짜주는 개인 실행 도구.">
+  <title>다시봄 — 공부 계획과 복습이 한 바퀴</title>
+  <meta name="description" content="하루 계획을 짜주고, 배운 것을 다시 볼 때가 되면 그 계획에 넣어줍니다. 다시 읽는 대신 안 보고 떠올리게 합니다. API 키 없이도 전부 동작합니다.">
+  <meta property="og:title" content="다시봄 — 공부 계획과 복습이 한 바퀴">
+  <meta property="og:description" content="계획은 앱이 짜고, 틀린 것만 다시 띄웁니다. 무거운 건 여러분이 쓰는 AI 챗앱이 하고, 이 앱은 기억만 합니다.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://kimseongmmine.github.io/loop/">
-  <meta property="og:image" content="https://kimseongmmine.github.io/loop/icon-512.png">
   <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#e9edf1">
   <meta name="theme-color" content="#070c12" media="(prefers-color-scheme: dark)">
@@ -21,13 +19,16 @@
 </head>
 <body>
 <!--
-THESIS: 시간을 재는 계기(計器). 물이 바탕, 금속이 지표. 거부하는 것 — 파스텔 뱃지를 얹은 SaaS 카드 대시보드.
-OWN-WORLD: 심해 계기판. 은빛 hairline, 물빛 단일 강조, tabular 숫자, 얇고 예리한 선.
-  팔레트는 사용자 원국 기준 용신 水·희신 金. 火土(적·주황·앰버·크림)는 이 파일과 style.css에 존재하지 않는다.
-STORY: 열면 지금 할 차례가 물빛으로 표시된다. 나머지는 조용한 눈금.
-FIRST VIEWPORT: 링 마크 + LOOP, 지금/다음 한 줄, 배터리, 생성 버튼, 그 아래 눈금 축을 낀 오늘 시간표.
-FORM: 사용자 브리프 고정(水金). 롤 생략 — 브리프 우선.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+  다시봄 — 공부 계획과 복습이 한 바퀴 도는 앱.
+
+  설계 원칙
+   1. 결정을 사용자에게 되돌려주지 않는다. 빈 입력창을 만들지 않고, 기본값을 정해둔다.
+   2. 앱은 사용자를 평가하지 않는다. 칭찬도 위로도 잔소리도 하지 않고 사실만 적는다.
+   3. 하지 않은 것을 한 것처럼 세지 않는다.
+   4. AI 실패는 상시 조건이다. 키가 없거나 한도를 넘겨도 모든 기능이 돈다.
+
+  스택: 바닐라 JS + HTML + CSS. 빌드도구·프레임워크·의존성 0. 저장은 localStorage 뿐.
+  서버가 없고, 어떤 데이터도 밖으로 나가지 않는다.
 -->
   <main id="screen"></main>
   <script src="app.js"></script>

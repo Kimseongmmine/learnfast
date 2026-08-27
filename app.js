@@ -6,6 +6,11 @@
 // =====================================================================
 
 // ---- generic storage ----
+// 앱 이름. index.html·manifest.json 의 이름도 같이 맞출 것.
+const APP_NAME = "다시봄";
+// OpenRouter 가 요청 출처로 쓴다. 배포한 주소를 그대로 쓰므로 손댈 것이 없다.
+const OR_REFERER = (typeof location !== "undefined" && location.origin) ? location.origin : "";
+
 function lsGet(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -415,8 +420,8 @@ async function orOnce(key, model, messages, maxTokens) {
     headers: {
       "Authorization": "Bearer " + key,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://kimseongmmine.github.io/loop/",
-      "X-Title": "LOOP"
+      "HTTP-Referer": OR_REFERER,
+      "X-Title": APP_NAME
     },
     body: JSON.stringify({ model: model, max_tokens: maxTokens || 2048, temperature: 0.6, messages: messages })
   });
@@ -1869,6 +1874,10 @@ async function aiGeneratePlan(candidates, targetDate, opts) {
 }
 
 // 장보기 목록 정규화: 짧은 품목명 최대 6개
+// AI가 도는 동안의 화면 상태. 계획 생성 중엔 버튼을 잠그고 로딩을 보여준다.
+let generating = false;
+let breaking = null;   // AI가 지금 쪼개고 있는 목표 id
+
 async function breakdownGoalNow(goalId) {
   if (breaking) return;
   const profile = loadProfile();
@@ -2116,6 +2125,12 @@ function render() {
   } catch (e) {}
 
   root.innerHTML = "";
+  const ob = renderOnboard();
+  if (ob) {                       // 처음 열었으면 이것만 보여준다. 탭도 안 그린다.
+    root.appendChild(ob);
+    restoreFocus(root, restore);
+    return;
+  }
   const foc = renderFocus();
   if (foc) {
     root.appendChild(foc);
@@ -2150,16 +2165,19 @@ function render() {
     root.appendChild(renderTabbar());
   }
 
-  // 2) 같은 필드를 다시 찾아 포커스와 커서 위치를 되돌림
-  if (restore) {
-    try {
-      const next = root.querySelector('[data-k="' + restore.k + '"]');
-      if (next) {
-        next.focus();
-        if (next.setSelectionRange && restore.start != null) next.setSelectionRange(restore.start, restore.end);
-      }
-    } catch (e) {}
-  }
+  restoreFocus(root, restore);
+}
+
+// 재렌더가 타이핑을 삼키지 않도록 포커스와 커서를 되돌린다
+function restoreFocus(root, restore) {
+  if (!restore) return;
+  try {
+    const next = root.querySelector('[data-k="' + restore.k + '"]');
+    if (next) {
+      next.focus();
+      if (next.setSelectionRange && restore.start != null) next.setSelectionRange(restore.start, restore.end);
+    }
+  } catch (e) {}
 }
 
 // 입력 중 유실을 막는 표준 바인딩: 타이핑 즉시(디바운스) 저장 + 필드 식별자 부여
@@ -2433,6 +2451,101 @@ function renderDaySwitch() {
     b.addEventListener("click", function () { viewOverride = o.d; render(); });
     box.appendChild(b);
   });
+  return box;
+}
+
+// ---- 첫 실행 온보딩 ----
+// 개인 기본값을 채워두는 대신 세 가지만 묻는다. 한 화면에 다 있고, 건너뛸 수 있다.
+const K_ONBOARDED = "loop.onboarded";
+function isOnboarded() { try { return localStorage.getItem(K_ONBOARDED) === "1"; } catch (e) { return true; } }
+function setOnboarded() { try { localStorage.setItem(K_ONBOARDED, "1"); } catch (e) {} }
+function needsOnboard() {
+  if (isOnboarded()) return false;
+  const p2 = loadProfile();
+  return !(p2.goals || []).length && !String(p2.courses || "").trim();
+}
+
+const onboardDraft = { courses: "", mid: "", fin: "", place: "", min: "" };
+
+function finishOnboard() {
+  const p2 = loadProfile();
+  p2.courses = String(onboardDraft.courses || "").trim();
+  const ex = [];
+  if (String(onboardDraft.mid || "").trim()) ex.push("중간고사 " + onboardDraft.mid.trim());
+  if (String(onboardDraft.fin || "").trim()) ex.push("기말고사 " + onboardDraft.fin.trim());
+  p2.exams = ex.join(" / ");
+  const pl = String(onboardDraft.place || "").trim();
+  const mn = String(onboardDraft.min || "").trim();
+  if (pl) p2.places = pl + (mn ? (" " + mn + "분") : "") + " / 집 책상";
+  // 적어준 과목을 그대로 목표로 만든다. 한 번 더 누르게 하지 않는다.
+  parseCourses(p2.courses).forEach(function (name) {
+    if (p2.goals.some(function (g) { return g.title === name; })) return;
+    p2.goals.push({ id: genId("g"), title: name, note: "", deadline: "", scope: "", tasks: [], analyzedAt: null });
+  });
+  saveProfile(p2);
+  setOnboarded();
+  render();
+}
+
+function renderOnboard() {
+  if (!needsOnboard()) return null;
+  const box = el("section", { cls: "onboard" });
+  const mark = el("div", { cls: "mark" });
+  const ring = svgRing();
+  if (ring) mark.appendChild(ring);
+  mark.appendChild(el("h1", { cls: "brand", text: APP_NAME }));
+  box.appendChild(mark);
+  box.appendChild(el("p", { cls: "tag", text: "3분이면 시작합니다" }));
+  box.appendChild(el("p", { cls: "lede", text: "세 가지만 적으면 됩니다. 나머지는 앱이 정합니다 — 무엇을 언제 어디서 할지, 무엇을 언제 다시 볼지." }));
+
+  function field(step, label, hint, key, opts) {
+    const w = el("div", { cls: "obfield" });
+    w.appendChild(el("span", { cls: "obstep", text: String(step) }));
+    const body = el("div", { cls: "obbody" });
+    body.appendChild(el("label", { cls: "oblabel", text: label }));
+    if (hint) body.appendChild(el("span", { cls: "obhint", text: hint }));
+    const node = (opts && opts.area) ? el("textarea", { cls: "obinput obarea" }) : el("input", { cls: "obinput" });
+    if (!(opts && opts.area)) node.type = "text";
+    if (opts && opts.area) node.rows = 5;
+    node.placeholder = (opts && opts.ph) || "";
+    node.value = onboardDraft[key] || "";
+    bindField(node, "ob:" + key, function (v) { onboardDraft[key] = v; });
+    body.appendChild(node);
+    w.appendChild(body);
+    return { wrap: w, body: body };
+  }
+
+  box.appendChild(field(1, "이번 학기 과목", "한 줄에 하나씩. 나중에 바꿀 수 있습니다.", "courses",
+    { area: true, ph: "자료구조\n운영체제\n선형대수" }).wrap);
+
+  const two = field(2, "시험 날짜", "모르면 비워두세요. 나중에 넣으면 그때부터 반영됩니다.", "mid", { ph: "중간 · 10/20" });
+  const finInput = el("input", { cls: "obinput" });
+  finInput.type = "text";
+  finInput.placeholder = "기말 · 12/15";
+  finInput.value = onboardDraft.fin || "";
+  bindField(finInput, "ob:fin", function (v) { onboardDraft.fin = v; });
+  two.body.appendChild(finInput);
+  box.appendChild(two.wrap);
+
+  const three = field(3, "주로 공부하는 곳", "집에서 얼마나 걸리는지도요. 이동 시간을 계획에 넣습니다.", "place", { ph: "학교 도서관" });
+  const minInput = el("input", { cls: "obinput" });
+  minInput.type = "text";
+  minInput.placeholder = "집에서 25 (분)";
+  minInput.value = onboardDraft.min || "";
+  bindField(minInput, "ob:min", function (v) { onboardDraft.min = v; });
+  three.body.appendChild(minInput);
+  box.appendChild(three.wrap);
+
+  const row = el("div", { cls: "addrow obrow" });
+  const go = el("button", { cls: "gen", text: "시작하기" });
+  go.addEventListener("click", function () { finishOnboard(); });
+  row.appendChild(go);
+  const skip = el("button", { cls: "mini", text: "나중에" });
+  skip.addEventListener("click", function () { setOnboarded(); render(); });
+  row.appendChild(skip);
+  box.appendChild(row);
+
+  box.appendChild(el("p", { cls: "muted", text: "모든 것은 이 브라우저에만 저장됩니다. 서버로 아무것도 보내지 않습니다." }));
   return box;
 }
 
@@ -3327,11 +3440,19 @@ function renderSettings() {
   box.appendChild(drow);
   if (dataMsg) box.appendChild(el("div", { cls: "muted", text: dataMsg }));
   box.appendChild(el("div", { cls: "muted", text: "API 키는 백업에 들어가지 않습니다." }));
+
+  // ---- 데이터가 어디 있는지 ----
+  // 전부 코드로 확인되는 사실만 적는다. 서버가 없으므로 지킬 수 있는 약속이다.
+  box.appendChild(el("div", { cls: "aihd", text: "이 앱이 다루는 데이터" }));
+  [
+    "모든 기록은 이 브라우저에만 저장됩니다. 서버가 없습니다.",
+    "분석 도구를 넣지 않았습니다. 무엇을 눌렀는지 아무도 모릅니다.",
+    "AI 키를 넣으면 계획을 짤 때만 그 회사로 요청이 갑니다. 키를 안 넣으면 어떤 요청도 나가지 않습니다.",
+    "브라우저가 저장소를 비우면 기록도 사라집니다. 백업을 가끔 받아두세요."
+  ].forEach(function (t) { box.appendChild(el("div", { cls: "muted", text: "· " + t })); });
   return box;
 }
 
-// 원국 카드 — 계산 결과를 그대로 보여준다. 해석은 한 줄뿐.
-const NATAL_COLS = [{ k: "year", l: "년" }, { k: "month", l: "월" }, { k: "day", l: "일" }, { k: "hour", l: "시" }];
 // 측정 카드 — 있는 숫자만 보여준다. 없으면 카드 자체가 안 뜬다.
 function renderMeasure() {
   const st = studyStats(todayStr(new Date()));
@@ -3488,7 +3609,7 @@ if (typeof module !== "undefined" && module.exports) {
     computeStreak, visitGrid, recordVisit, goalProgress, nextPendingTasks,
     findGoal, extractJSON, todayStr, dateStr, addDays, pad2, activeDate,
     templatePlan, mapAIBlocks, coreStatus, generatePlan, profileContext, loadProfile,
-    parseTaskList, breakdownGoalNow, parseTextSchedule, repairTruncatedJSON, weekdayOf, dateWithWeekday, quoteFor, recentStats, stalledTask, renderFlow, isOnTime, startWindow, lockReason, blockStartMinutes, blockEndMinutes, setBlockDone, currentBlock, daySummary, replanFromNow, keepableBlocks, commuteBetween, isFillerBlock, isMicroBlock, splitDay, spanText, isRecallable, studyStats, renderMeasure, EXAM_MARGIN, parseExams, nextExam, effectiveDeadline, DEFAULT_EXAMS, parseQuestions, attachQuestions, isLeech, leechItems, reviewQuota, LEECH_AT, parseCourses, DEFAULT_COURSES, loadSessions, saveSessions, addSession, sessionStats, sessionLine, dailyCourses, courseScore, lastTouched, scopeUnits, examPace, paceLine, DAILY_COURSES, loadReviews, saveReviews, scheduleReview, addReview, dueReviews, dueReviewCandidates, settleReview, askLabel, finishBlock, REVIEW_STEPS, isQuotaError, buildPrompt, parseCourseTasks, pastRecord, importCourseTasks, daysUntil, loadStuck, addStuck, PROMPTS, taskKind, courseKind, blockMinutesFor, retrievalText, KINDS, setEditing, editableBlocks, swapSlots, shiftBlock, swapTask, dropBlock, swapCandidates, applyEdit, renderGoalsPanel, renderGuide, renderIntro, isFreshStart, viewDate, renderDaySwitch, renderNowbar, renderPlanTools, currentTab, goTab, firstStep, setBlockStarted, exportPayload, applyImport, openFocus, closeFocus, renderFocus, placeRules, fillPlaces, insertCommutes, minToClock, parseEvents, mergeEventBlocks, getEvent, setEvent, render
+    parseTaskList, breakdownGoalNow, parseTextSchedule, repairTruncatedJSON, weekdayOf, dateWithWeekday, quoteFor, recentStats, stalledTask, renderFlow, isOnTime, startWindow, lockReason, blockStartMinutes, blockEndMinutes, setBlockDone, currentBlock, daySummary, replanFromNow, keepableBlocks, commuteBetween, isFillerBlock, isMicroBlock, splitDay, spanText, isRecallable, studyStats, renderMeasure, EXAM_MARGIN, parseExams, nextExam, effectiveDeadline, parseQuestions, attachQuestions, isLeech, leechItems, reviewQuota, LEECH_AT, parseCourses, loadSessions, saveSessions, addSession, sessionStats, sessionLine, dailyCourses, courseScore, lastTouched, scopeUnits, examPace, paceLine, DAILY_COURSES, loadReviews, saveReviews, scheduleReview, addReview, dueReviews, dueReviewCandidates, settleReview, askLabel, finishBlock, REVIEW_STEPS, isQuotaError, buildPrompt, parseCourseTasks, pastRecord, importCourseTasks, daysUntil, loadStuck, addStuck, PROMPTS, taskKind, courseKind, blockMinutesFor, retrievalText, KINDS, renderOnboard, needsOnboard, finishOnboard, onboardDraft, setOnboarded, APP_NAME, setEditing, editableBlocks, swapSlots, shiftBlock, swapTask, dropBlock, swapCandidates, applyEdit, renderGoalsPanel, renderGuide, renderIntro, isFreshStart, viewDate, renderDaySwitch, renderNowbar, renderPlanTools, currentTab, goTab, firstStep, setBlockStarted, exportPayload, applyImport, openFocus, closeFocus, renderFocus, placeRules, fillPlaces, insertCommutes, minToClock, parseEvents, mergeEventBlocks, getEvent, setEvent, render
   };
 }
 

@@ -1,6 +1,8 @@
 {
-  "name": "LOOP",
-  "short_name": "LOOP",
+  "name": "다시봄 — 공부 계획과 복습이 한 바퀴",
+  "short_name": "다시봄",
+  "description": "하루 계획을 짜주고, 배운 것을 다시 볼 때가 되면 그 계획에 넣어줍니다. API 키 없이도 전부 동작합니다.",
+  "lang": "ko",
   "display": "standalone",
   "background_color": "#070c12",
   "theme_color": "#070c12",

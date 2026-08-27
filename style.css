@@ -1,9 +1,9 @@
 * { box-sizing: border-box; }
 
 /* ─────────────────────────────────────────────────────────────
-   팔레트: 水金. 사용자 원국 기준 용신 水 · 희신 金 · 기신 火土.
-   그래서 이 파일에는 빨강·주황·앰버·크림 계열이 존재하지 않는다.
-   라이트 = 金(백·은 바탕) / 다크 = 水(심해 바탕). 강조는 물빛 하나.
+   팔레트: 물과 금속. 빨강·주황·앰버 계열은 이 파일에 존재하지 않는다 —
+   공부 도구에 경고색을 쓰지 않기 위해서다. 잘못한 것을 붉게 칠하지 않는다.
+   라이트 = 은백 바탕 / 다크 = 심해 바탕. 강조는 물빛 하나뿐.
    모든 값은 대비비를 계산해 채택했다. 텍스트 4.5:1, UI 3:1 이상.
    ───────────────────────────────────────────────────────────── */
 :root {
@@ -75,7 +75,8 @@ html, body {
 }
 
 /* cards */
-.prog, .today, .settings, .meals, .note, .flow, .footer, .tools, .natal, .fortune, .goals, .intro {
+.prog, .today, .settings, .note, .flow, .footer, .tools, .goals, .intro,
+.measure, .onboard {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -155,12 +156,6 @@ h2 {
 }
 .qtext { font-size: 14px; line-height: 1.6; color: var(--ink); }
 .qauth { font-size: 12px; color: var(--dim); }
-
-/* 대운 타임라인 */
-.tl .trow { display: flex; gap: 10px; align-items: baseline; padding: 5px 0; font-size: 13px; }
-.tl .tage { flex: none; width: 40px; color: var(--dim); font-variant-numeric: tabular-nums; }
-.tl .tgz { flex: none; width: 34px; font-weight: 600; }
-.tl .tnote { color: var(--muted); }
 .tl .trow.now { background: var(--accent-soft); border-radius: 6px; padding: 6px 8px; margin: 2px -8px; }
 .tl .trow.now .tgz, .tl .trow.now .tnote { color: var(--accent); font-weight: 700; }
 
@@ -218,9 +213,6 @@ h2 {
 .block.isMove .txt { color: var(--faint); font-size: 14px; }
 
 input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent); flex: none; }
-
-/* on-time checking */
-.onhint { margin: 0 0 10px; }
 .block.open { background: var(--now-soft); }
 .badge { flex: none; margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 3px; letter-spacing: 0.06em; border: 1px solid currentColor; background: transparent !important; }
 .badge.late { color: var(--muted); }
@@ -228,11 +220,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .badge.ontime { color: var(--ok); }
 .badge.now { color: var(--now); }
 
-/* meals */
 .meal { display: flex; align-items: baseline; gap: 12px; padding: 9px 2px; }
 .meal + .meal { border-top: 1px solid var(--line); }
-.mlabel { flex: none; width: 40px; font-size: 12px; font-weight: 700; color: var(--muted); }
-.mtext { font-size: 14px; }
 
 /* buttons */
 button {
@@ -316,27 +305,11 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 /* 흐름 카드 — 짧은(기록) / 중간(세운) / 긴(대운). 카드 껍데기는 위 공통 규칙이 준다 */
 .layer { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
-.llabel { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.09em; text-transform: uppercase; }
 .bignum { font-size: 20px; font-weight: 800; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
-.yrow { display: flex; align-items: baseline; gap: 10px; padding: 6px 8px; margin: 0 -8px; font-size: 13px; border-radius: 6px; }
-.yy { flex: none; width: 42px; color: var(--dim); font-variant-numeric: tabular-nums; }
-.ygz { flex: none; width: 34px; font-weight: 700; }
-.ytone { flex: none; width: 40px; font-weight: 600; color: var(--muted); }
-.ynote { color: var(--muted); }
 .yrow.now { background: var(--accent-soft); }
 .yrow.now .ygz, .yrow.now .ytone { color: var(--accent); }
 .yrow.good .ytone { color: var(--ok); }
-
-/* 식단 강화: 몸 입력 · 장보기 */
-.bodyrow { align-items: flex-end; }
-.bodyfield { flex: 1 1 120px; min-width: 0; }
 .bodyfield .flabel { margin-bottom: 5px; }
-.bodyinput { width: 100%; margin-left: 0; }
-.oneline { min-height: 0; }
-.bodyline { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-.shop { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-.shoplist { margin: 6px 0 0; padding-left: 18px; }
-.shoplist li { font-size: 14px; padding: 3px 0; color: var(--muted); }
 
 /* 브랜드 링 — 지금까지 쓰지 않던 loop 자산을 표식으로 */
 .mark { display: flex; align-items: center; gap: 10px; }
@@ -416,25 +389,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .gicon { grid-row: 1 / 3; align-self: center; font-size: 15px; text-align: center; }
 .gname { font-size: 14px; font-weight: 700; color: var(--ink); }
 .gwhat { font-size: 12px; line-height: 1.45; color: var(--dim); }
-
-/* 오늘의 운세 */
-.fortune {
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: 12px; padding: 20px; margin: 0 0 16px;
-}
-.frow { display: flex; align-items: baseline; gap: 10px; padding: 12px 14px; border-radius: 9px; background: var(--neutral-soft); }
 .frow.good { background: var(--accent-soft); }
-.fgz { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 0.06em; }
-.fel { font-size: 12px; color: var(--dim); }
-.ftone { margin-left: auto; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; color: var(--muted); }
 .frow.good .ftone { color: var(--accent); }
-.fact { font-size: 15px; line-height: 1.6; font-weight: 600; color: var(--ink); margin: 14px 0 16px; }
-.fhours { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
-.fhours .llabel { margin-right: 4px; }
-.hchip {
-  font-size: 12px; padding: 5px 10px; border-radius: 999px;
-  border: 1px solid var(--line); color: var(--dim);
-}
 .hchip.on { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 
 /* ===== 탭 구조 (v2.0) ===== */
@@ -485,29 +441,7 @@ section.settings, section.goals {
   background: var(--card); border: 1px solid var(--line);
   border-radius: 12px; padding: 20px; margin: 0 0 16px;
 }
-
-/* ===== 원국 ===== */
-.natal {
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: 12px; padding: 20px; margin: 0 0 16px;
-}
-.ngrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-.ncol {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 12px 4px; border-radius: 9px; background: var(--neutral-soft);
-}
-.ncol.isday { background: var(--accent-soft); }
-.nlab { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); }
-.nstem, .nbranch { font-size: 21px; font-weight: 700; color: var(--ink); line-height: 1.15; }
-.ncol.isday .nstem { color: var(--accent); }
-.nel { font-size: 11px; color: var(--dim); margin-top: 2px; }
-.nels { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.elchip {
-  font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px;
-  border: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums;
-}
 .elchip.use { border-color: var(--accent); color: var(--accent); }
-.elchip.zero { opacity: 0.55; }
 
 .tstreak { font-size: 12px; font-weight: 700; color: var(--accent); }
 
@@ -664,3 +598,29 @@ section.settings, section.goals {
   border-radius: 4px; letter-spacing: 0.02em; font-variant-numeric: tabular-nums;
 }
 .dchip.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+
+/* ===== 첫 실행 온보딩 ===== */
+.onboard {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 28px 24px; margin: 0 0 16px;
+}
+.onboard .tag { margin-top: 6px; }
+.onboard .lede { margin-bottom: 26px; }
+.obfield { display: flex; gap: 14px; margin: 0 0 22px; }
+.obstep {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 13px; font-weight: 800; line-height: 26px; text-align: center;
+}
+.obbody { flex: 1 1 auto; display: flex; flex-direction: column; gap: 5px; }
+.oblabel { font-size: 15px; font-weight: 700; color: var(--ink); }
+.obhint { font-size: 12px; color: var(--dim); margin-bottom: 3px; }
+.obinput {
+  width: 100%; min-height: 40px; padding: 10px 12px;
+  background: var(--card); border: 1px solid var(--field-line); border-radius: 8px;
+  color: var(--ink); font: inherit; font-size: 14px;
+}
+.obinput:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.obarea { min-height: 108px; resize: vertical; line-height: 1.6; }
+.obrow { margin-top: 4px; }
+.obrow .gen { flex: 1 1 auto; }
