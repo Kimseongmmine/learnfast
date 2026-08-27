@@ -1,0 +1,15 @@
+# 남이 만든 코드가 통째로 들어오는 폴더. 용량이 크고 package.json 만 있으면
+# 언제든 다시 받을 수 있으므로 저장소에 넣지 않는다.
+server/node_modules/
+
+# 비밀값(DB 주소·JWT 서명키)이 들어가는 파일. 절대 커밋 금지.
+# GitHub Pages 가 이 저장소의 파일을 그대로 인터넷에 내보내므로
+# 여기 커밋하면 그 순간 전 세계가 읽을 수 있다.
+.env
+server/.env
+server/.env.*
+!server/.env.example
+
+# 에디터·도구가 만드는 폴더
+.serena/
+.DS_Store
