@@ -624,3 +624,6 @@ section.settings, section.goals {
 .obarea { min-height: 108px; resize: vertical; line-height: 1.6; }
 .obrow { margin-top: 4px; }
 .obrow .gen { flex: 1 1 auto; }
+
+/* 과목 팩 — 목표 카드 오른쪽 작은 버튼 */
+.packbtn { flex: none; margin-left: auto; }

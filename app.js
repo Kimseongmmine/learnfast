@@ -774,27 +774,122 @@ function applyImport(payload) {
   if (!n) throw new Error("되돌릴 항목이 없습니다");
   return n;
 }
+// ---- 과목 팩 ----
+// 목표 하나를 통째로 남에게 줄 수 있는 형태로 만든다.
+// **개인 기록은 담지 않는다** — 상자·다음 차례·본 횟수·틀린 지점·세션은 전부 뺀다.
+// 받는 사람은 1번 상자부터 시작한다. 남의 진도가 내 진도가 되면 안 되기 때문.
+const PACK_APP = "dasibom-pack";
+function packName(title) {
+  return String(title || "과목").replace(/[\\/:*?"<>|]/g, "").trim().slice(0, 30) + " 팩.json";
+}
+function exportPack(goalId, profile) {
+  const pf = profile || loadProfile();
+  const g = findGoal(pf, goalId);
+  if (!g) return null;
+  const cards = loadReviews()
+    .filter(function (r) { return r.goalId === goalId; })
+    .map(function (r) { return { text: r.text, q: r.q || "", kind: r.kind || "개념" }; });
+  return {
+    app: PACK_APP, version: 1,
+    course: g.title,
+    scope: g.scope || "",
+    tasks: (g.tasks || []).map(function (t) { return { text: t.text, kind: t.kind || taskKind(t.text, g.title) }; }),
+    cards: cards
+  };
+}
+// 받은 팩을 목표로 만든다. 같은 제목이 있으면 거기에 붙이고, 중복은 안 넣는다.
+function importPack(payload, today) {
+  const p2 = (typeof payload === "string") ? JSON.parse(payload) : payload;
+  if (!p2 || p2.app !== PACK_APP || !p2.course) throw new Error("과목 팩 파일이 아닙니다");
+  const pf = loadProfile();
+  let g = pf.goals.filter(function (x) { return x.title === p2.course; })[0];
+  if (!g) {
+    g = { id: genId("g"), title: String(p2.course).slice(0, 30), note: "", deadline: "", scope: String(p2.scope || "").slice(0, 30), tasks: [], analyzedAt: null };
+    pf.goals.push(g);
+  }
+  const have = {};
+  (g.tasks || []).forEach(function (t) { have[t.text] = true; });
+  let nt = 0;
+  (p2.tasks || []).slice(0, 40).forEach(function (t) {
+    const text = String(t && t.text || "").slice(0, 70);
+    if (!text || have[text]) return;
+    g.tasks.push({ id: genId("t"), text: text, done: false, kind: t.kind || taskKind(text, g.title) });
+    have[text] = true;
+    nt++;
+  });
+  saveProfile(pf);
+
+  const all = loadReviews();
+  const seen = {};
+  all.forEach(function (r) { if (r.goalId === g.id) seen[r.text] = true; });
+  let nc = 0;
+  const day = today || todayStr(new Date());
+  (p2.cards || []).slice(0, 200).forEach(function (c) {
+    const text = String(c && c.text || "").slice(0, 70);
+    if (!text || seen[text]) return;
+    all.push({
+      id: genId("r"), goalId: g.id, kind: c.kind || "개념", text: text,
+      q: String(c.q || "").slice(0, 140), missed: "",
+      box: 1, due: addDays(day, REVIEW_STEPS[0]), seen: 0, made: day
+    });
+    seen[text] = true;
+    nc++;
+  });
+  if (nc) saveReviews(all);
+  return { course: g.title, tasks: nt, cards: nc };
+}
+
+async function downloadPack(goalId) {
+  const pack = exportPack(goalId);
+  if (!pack) return;
+  const okSaved = await saveFile(packName(pack.course), JSON.stringify(pack, null, 2), "과목 팩");
+  dataMsg = okSaved ? ("내보냈습니다 · " + packName(pack.course)) : "";
+  render();
+}
+function readPack(file) {
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = function () {
+    try {
+      const r = importPack(String(rd.result), todayStr(new Date()));
+      dataMsg = r.course + " · 과제 " + r.tasks + "개, 복습 " + r.cards + "개를 넣었습니다.";
+    } catch (e) { dataMsg = "가져오기 실패 · " + (e && e.message ? e.message : "형식 오류"); }
+    render();
+  };
+  rd.readAsText(file);
+}
+
 function lastBackupAt() { try { return localStorage.getItem(K_BACKUP_AT) || ""; } catch (e) { return ""; } }
 let dataMsg = "";
-// PC(크로미움)는 같은 파일에 덮어쓰기, 그 외에는 다운로드.
-async function downloadBackup() {
-  const text = JSON.stringify(exportPayload(), null, 2);
+// 파일로 저장. PC(크로미움)는 같은 파일에 덮어쓰기, 그 외에는 다운로드.
+// 사용자가 취소하면 false 를 돌려준다(예외가 아니라 정상 흐름이다).
+async function saveFile(name, text, label) {
   try {
     if (typeof window !== "undefined" && window.showSaveFilePicker) {
-      const h = await window.showSaveFilePicker({ suggestedName: BACKUP_NAME, types: [{ description: "LOOP 백업", accept: { "application/json": [".json"] } }] });
+      const h = await window.showSaveFilePicker({
+        suggestedName: name,
+        types: [{ description: label || "JSON", accept: { "application/json": [".json"] } }]
+      });
       const w = await h.createWritable(); await w.write(text); await w.close();
     } else {
       const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
       const a = document.createElement("a");
-      a.href = url; a.download = BACKUP_NAME;
+      a.href = url; a.download = name;
       if (document.body) document.body.appendChild(a);
       a.click();
       if (a.remove) a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     }
+    return true;
+  } catch (e) { return false; }
+}
+
+async function downloadBackup() {
+  const okSaved = await saveFile(BACKUP_NAME, JSON.stringify(exportPayload(), null, 2), "백업");
+  if (okSaved) {
     try { localStorage.setItem(K_BACKUP_AT, new Date().toISOString()); } catch (e) {}
     dataMsg = "내보냈습니다 · " + BACKUP_NAME;
-  } catch (e) { dataMsg = ""; }   // 사용자가 취소하면 아무 일도 없다
+  } else dataMsg = "";
   render();
 }
 function importBackup(file) {
@@ -3247,6 +3342,20 @@ function renderGoalsPanel() {
   }));
   box.appendChild(grow2);
   box.appendChild(bridgeBox({ paste: true }));
+
+  // 남이 만든 과목 팩 받기
+  const prow = el("div", { cls: "addrow" });
+  const pf2 = el("input");
+  pf2.type = "file";
+  pf2.setAttribute("accept", "application/json,.json");
+  pf2.setAttribute("aria-label", "과목 팩 가져오기");
+  pf2.addEventListener("change", function () {
+    const file = pf2.files && pf2.files[0];
+    if (file) readPack(file);
+  });
+  prow.appendChild(el("span", { cls: "muted", text: "⬆ 과목 팩 가져오기" }));
+  prow.appendChild(pf2);
+  box.appendChild(prow);
   profile.goals.forEach(function (g) {
     const gv = el("div", { cls: "goal" });
     const top = el("div", { cls: "goaltop" });
@@ -3275,6 +3384,15 @@ function renderGoalsPanel() {
     });
     top.appendChild(del);
     gv.appendChild(top);
+    // 이 과목을 통째로 남에게 줄 수 있다. 내 진도는 안 딸려간다.
+    const ex = el("button", { cls: "rowbtn packbtn", text: "⬇" });
+    ex.title = "이 과목을 팩으로 내보내기 (내 진도는 빠집니다)";
+    ex.setAttribute("aria-label", g.title + " 팩으로 내보내기");
+    ex.addEventListener("click", function (e) {
+      if (e && e.preventDefault) e.preventDefault();
+      downloadPack(g.id);
+    });
+    top.appendChild(ex);
 
     (g.tasks || []).forEach(function (t) {
       const tr = el("label", { cls: "task" + (t.done ? " off" : "") });
@@ -3609,7 +3727,7 @@ if (typeof module !== "undefined" && module.exports) {
     computeStreak, visitGrid, recordVisit, goalProgress, nextPendingTasks,
     findGoal, extractJSON, todayStr, dateStr, addDays, pad2, activeDate,
     templatePlan, mapAIBlocks, coreStatus, generatePlan, profileContext, loadProfile,
-    parseTaskList, breakdownGoalNow, parseTextSchedule, repairTruncatedJSON, weekdayOf, dateWithWeekday, quoteFor, recentStats, stalledTask, renderFlow, isOnTime, startWindow, lockReason, blockStartMinutes, blockEndMinutes, setBlockDone, currentBlock, daySummary, replanFromNow, keepableBlocks, commuteBetween, isFillerBlock, isMicroBlock, splitDay, spanText, isRecallable, studyStats, renderMeasure, EXAM_MARGIN, parseExams, nextExam, effectiveDeadline, parseQuestions, attachQuestions, isLeech, leechItems, reviewQuota, LEECH_AT, parseCourses, loadSessions, saveSessions, addSession, sessionStats, sessionLine, dailyCourses, courseScore, lastTouched, scopeUnits, examPace, paceLine, DAILY_COURSES, loadReviews, saveReviews, scheduleReview, addReview, dueReviews, dueReviewCandidates, settleReview, askLabel, finishBlock, REVIEW_STEPS, isQuotaError, buildPrompt, parseCourseTasks, pastRecord, importCourseTasks, daysUntil, loadStuck, addStuck, PROMPTS, taskKind, courseKind, blockMinutesFor, retrievalText, KINDS, renderOnboard, needsOnboard, finishOnboard, onboardDraft, setOnboarded, APP_NAME, setEditing, editableBlocks, swapSlots, shiftBlock, swapTask, dropBlock, swapCandidates, applyEdit, renderGoalsPanel, renderGuide, renderIntro, isFreshStart, viewDate, renderDaySwitch, renderNowbar, renderPlanTools, currentTab, goTab, firstStep, setBlockStarted, exportPayload, applyImport, openFocus, closeFocus, renderFocus, placeRules, fillPlaces, insertCommutes, minToClock, parseEvents, mergeEventBlocks, getEvent, setEvent, render
+    parseTaskList, breakdownGoalNow, parseTextSchedule, repairTruncatedJSON, weekdayOf, dateWithWeekday, quoteFor, recentStats, stalledTask, renderFlow, isOnTime, startWindow, lockReason, blockStartMinutes, blockEndMinutes, setBlockDone, currentBlock, daySummary, replanFromNow, keepableBlocks, commuteBetween, isFillerBlock, isMicroBlock, splitDay, spanText, isRecallable, studyStats, renderMeasure, EXAM_MARGIN, parseExams, nextExam, effectiveDeadline, parseQuestions, attachQuestions, isLeech, leechItems, reviewQuota, LEECH_AT, parseCourses, loadSessions, saveSessions, addSession, sessionStats, sessionLine, dailyCourses, courseScore, lastTouched, scopeUnits, examPace, paceLine, DAILY_COURSES, loadReviews, saveReviews, scheduleReview, addReview, dueReviews, dueReviewCandidates, settleReview, askLabel, finishBlock, REVIEW_STEPS, isQuotaError, buildPrompt, parseCourseTasks, pastRecord, importCourseTasks, daysUntil, loadStuck, addStuck, PROMPTS, taskKind, courseKind, blockMinutesFor, retrievalText, KINDS, exportPack, importPack, packName, downloadPack, saveFile, PACK_APP, renderOnboard, needsOnboard, finishOnboard, onboardDraft, setOnboarded, APP_NAME, setEditing, editableBlocks, swapSlots, shiftBlock, swapTask, dropBlock, swapCandidates, applyEdit, renderGoalsPanel, renderGuide, renderIntro, isFreshStart, viewDate, renderDaySwitch, renderNowbar, renderPlanTools, currentTab, goTab, firstStep, setBlockStarted, exportPayload, applyImport, openFocus, closeFocus, renderFocus, placeRules, fillPlaces, insertCommutes, minToClock, parseEvents, mergeEventBlocks, getEvent, setEvent, render
   };
 }
 
