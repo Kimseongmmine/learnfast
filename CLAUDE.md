@@ -38,6 +38,8 @@
 
 같은 제작자의 **개인용 계획앱 `LOOP` 은 완전히 다른 저장소다**(사주·식단·개인 기본값 포함, 비공개 대상).
 한동안 브랜치로 같이 관리했지만 갈라놓았다 — 둘이 지향하는 게 다르고, 한쪽 기능이 다른 쪽에 안 맞는 일이 잦았다.
+**그때 이름과 문서는 갈라놨는데 `localStorage` 키를 빠뜨려서 두 앱이 같은 데이터를 덮어썼다.**
+`lf.` 접두사로 고친 경위는 아래 [데이터 모델](#데이터-모델-localstorage) 에 적어뒀다.
 **여기에는 개인 정보가 한 글자도 없어야 한다.** 대학 이름·생년월일·특정인의 시간표가 들어가면 안 된다.
 
 그래서 기본값을 채우지 않는다. 대신 **온보딩**(`renderOnboard`)이 과목·시험·장소를 받는다.
@@ -73,28 +75,47 @@ if (typeof document !== "undefined") boot();
 
 | 키 | 내용 |
 |---|---|
-| `loop.profile` | `{ fixed, rhythm, traits, prefs, places, courses, exams, goals[] }` |
-| `loop.plans` | `{ "YYYY-MM-DD": { blocks[], generatedAt, source } }` |
-| `loop.reviews` | 복습 큐 `[{ id, goalId, kind, text, q, missed, box, due, seen, made, leech }]` |
-| `loop.sessions` | 세션 기록 `[{ date, blockId, kind, plannedMin, actualMin, breaks }]` |
-| `loop.stuck` | `{ goalId: ["막혔던 지점", …] }` 최근 20개 |
-| `loop.visits` `loop.energy` `loop.notes` `loop.done` `loop.events` | 접속·배터리·회고·완료·특별 일정 |
-| `loop.onboarded` | 온보딩을 봤는지 |
+| `lf.profile` | `{ fixed, rhythm, traits, prefs, places, courses, exams, goals[] }` |
+| `lf.plans` | `{ "YYYY-MM-DD": { blocks[], generatedAt, source } }` |
+| `lf.reviews` | 복습 큐 `[{ id, goalId, kind, text, q, missed, box, due, seen, made, leech }]` |
+| `lf.sessions` | 세션 기록 `[{ date, blockId, kind, plannedMin, actualMin, breaks }]` |
+| `lf.stuck` | `{ goalId: ["막혔던 지점", …] }` 최근 20개 |
+| `lf.visits` `lf.energy` `lf.notes` `lf.done` `lf.events` | 접속·배터리·회고·완료·특별 일정 |
+| `lf.onboarded` | 온보딩을 봤는지 |
 
 - `goal` = `{ id, title, note, deadline, scope, hard, tasks[], analyzedAt }`
 - `task` = `{ id, text, done, kind }`
 - `block` = `{ id, time, text, place, kind, goalId, taskId, reviewId, first, core, done, started, startedAt, onTime, event, move }`
 
-**키 접두사가 `loop.` 인 것은 개인용 시절의 흔적이다.** 바꾸면 기존 사용자 데이터가 날아가므로 그대로 둔다.
+**접두사는 `app.js` 맨 위 `const KP = "lf.";` 한 줄에서 나온다.** 모든 키가 `KP + "이름"` 이라
+다음에 또 갈라놓을 일이 생기면 열여덟 줄이 아니라 한 줄만 고치면 된다.
+
+원래는 `loop.` 이었고 "바꾸면 데이터가 날아가니 그대로 둔다"고 적혀 있었는데, 그게 틀렸다.
+두 앱이 `kimseongmmine.github.io` 아래 `/loop/` 와 `/learnfast/` 로 나란히 배포되는데
+**`localStorage` 는 경로가 아니라 출처(origin) 단위**라, 경로가 달라도 같은 창고를 쓴다.
+접두사가 같으면 이 앱을 여는 순간 개인용 계획앱의 진짜 데이터(프로필·계획·착수 기록)를 읽고 덮어썼다.
+저장소를 갈라놓을 때 이름과 문서는 고쳤는데 정작 중요한 키를 빠뜨렸던 것이다.
+
+**옛 키를 읽어오는 이사(migration) 코드는 일부러 안 넣었다.** 그걸 넣으면 남의 시간표를
+"아무나 쓰라고 만든 앱"으로 그대로 옮겨오는 셈이고, 이 저장소가 피하려는 방향 그 자체다.
+아직 사용자도 없다.
 
 ---
 
 ## 화면 (탭 · 해시 라우팅)
-`오늘 📋` / `목표 🎯` / `기록 📈` / `설정 ⚙` — 하단 고정 탭바, `#/goal` 처럼 해시로 이동.
+`오늘 📋` / `목표 🎯` / `기록 📈` / `설정 ⚙` — `#/goal` 처럼 해시로 이동.
 `currentTab()` 은 `location.hash` 우선, 없으면 모듈 변수(테스트 환경엔 `location` 이 없다).
 실행 모드와 온보딩은 탭바까지 포함해 화면을 통째로 차지한다.
 
+**넓은 화면(900px 이상)에서는 왼쪽 세로 사이드바, 좁은 화면에서는 하단 고정 바다.**
+`.tabbar` 는 원래부터 `position: fixed` 라 **HTML 은 한 글자도 안 바뀐다** — `#screen` 의 마지막 자식이어도
+시각적 위치와 무관하다. 사이드바로 바뀌는 건 CSS 뿐이고 `flex-direction` 과 폭이 전부다.
+PC 를 주 기기로 삼는 앱인데 탭 네 개가 화면 아래 끝에 붙어 있으면, 큰 모니터에서는 조작할 대상과
+900픽셀쯤 떨어진 곳을 누르게 된다. 그래서 옮겼다.
+
 돌아오는 길이 셋이다: 로고(홈 버튼) · `← 오늘` 버튼 · 탭바. 하나에만 의존하지 않는다.
+**넓은 화면에서는 `← 오늘` 만 CSS 로 숨긴다**(사이드바가 늘 보이니 같은 일을 두 번 시키는 버튼이다).
+DOM 에서는 지우지 않는다 — 좁은 화면에 필요하고 `nav.test.js` 가 존재를 단언한다.
 
 ---
 
@@ -114,7 +135,7 @@ if (typeof document !== "undefined") boot();
 `retrievalText` 가 개념·유도 블록 앞에 `안 보고 써보기 —` / `안 보고 유도 —` 를 붙인다(두 번 안 붙는다).
 `fillPlaces`: **구현 블록은 집**(노트북으로 되니 이동을 만들 이유가 없다).
 
-### 복습 큐 (`loop.reviews`)
+### 복습 큐 (`lf.reviews`)
 라이트너 상자 1~5, 간격 **`[1,2,4,8,16]`**. 전부 코드. AI를 안 부른다.
 - **별도 화면이 없다.** `dueReviewCandidates` 가 오늘 차례가 된 것을 `nextPendingTasks` 앞에 놓아 그냥 계획의 블록이 된다
 - 복습 블록은 `REVIEW_MIN`(30분). `isMicroBlock` 의 25분 기준에 걸리면 얇은 줄로 접혀 못 누른다
@@ -223,7 +244,20 @@ const NL = ((s.match(/\r\n/g)||[]).length*2 > (s.match(/\n/g)||[]).length) ? '\r
 `dataKeys()` 가 상수가 아니라 함수인 이유다.
 
 **CSS 미디어 쿼리는 덮으려는 기본 규칙 뒤에 둘 것.** 앞에 두면 일부 속성만 적용돼
-데스크톱에서 탭바가 화면 밖으로 나간다. `nav.test.js` 가 스타일시트를 직접 읽어 순서를 검사한다.
+데스크톱에서 탭바가 화면 밖으로 나간다. 실제로 한 번 그랬다.
+그래서 `@media (min-width: 900px)` 블록은 **`style.css` 맨 끝 한 곳에만** 있다.
+`nav.test.js` 가 스타일시트를 글자로 직접 읽어 순서를 검사한다.
+
+사이드바 레이아웃에서 다시 밟기 쉬운 것 셋 — 전부 `nav.test.js` 가 단언한다:
+- **폭과 본문 여백은 `--sidew` 하나로 묶는다.** 숫자를 두 군데 적으면 언젠가 어긋나
+  본문이 사이드바에 깔리거나 반대로 빈 띠가 남는다
+- **위치를 `transform` 으로 만들지 말 것.** 옛 버그가 `translateX` 로 자리를 잡다가 났다.
+  `left`/`right` 로만 붙인다
+- **`.tab` 의 `flex: 1 1 0` 을 반드시 풀 것.** 가로 바에서는 넷이 폭을 나누라는 뜻이지만,
+  세로로 세우면 그대로 **화면 높이를 4등분**해 탭 하나가 손바닥만 해진다
+
+실행 모드·온보딩은 `render()` 가 탭바를 아예 안 그린다. 그때 남는 240px 빈 여백은
+`body:has(#screen > .focus)` 로 지운다 — DOM 은 그대로 두고 CSS 가 알아서 눈치채게 한다.
 
 **행 안의 버튼은 `e.preventDefault()`.** 블록 행이 `<label>` 이라 클릭이 체크박스로 샌다.
 
@@ -266,7 +300,8 @@ GitHub Pages 는 루트만 서빙하므로 `server/` 가 있어도 앱은 그대
 미로그인 → 지금과 100% 동일. localStorage 만. 서버로 아무것도 안 보낸다
 로그인   → 기기 간 동기화가 추가된다
 ```
-README 의 약속을 **"로그인하지 않으면 서버로 아무것도 보내지 않습니다"** 로 고쳐 쓴다.
+README 의 약속은 이미 **"로그인하지 않으면 서버로 아무것도 보내지 않습니다"** 로 고쳐 뒀다(0단계에서 같이).
+"서버가 없고"는 이제 사실이 아니므로 "앱은 서버를 쓰지 않고"로 바꿨다. 1단계에서 로그인이 붙어도 이 문장은 그대로 참이다.
 로그인을 필수로 만들면 이 앱의 강점("열면 바로 쓴다", "데이터가 안 나간다", "운영비 0원")이 전부 사라진다.
 
 ### 단계 — 각 단계 끝에 동작하는 것이 남아야 한다
