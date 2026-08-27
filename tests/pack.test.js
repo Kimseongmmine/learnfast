@@ -16,8 +16,8 @@ const byCls=c=>walk(root,n=>n.className&&n.className.split(" ").indexOf(c)>=0,[]
 const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const TODAY="2026-08-27";
-mem["loop.onboarded"]="1";
-mem["loop.profile"]=JSON.stringify({courses:"확률과통계",goals:[
+mem["lf.onboarded"]="1";
+mem["lf.profile"]=JSON.stringify({courses:"확률과통계",goals:[
   {id:"g1",title:"확률과통계",deadline:"10/20",scope:"1~6장",tasks:[
     {id:"t1",text:"6장 연습문제 1-12번 풀기",done:true,kind:"문제"},
     {id:"t2",text:"중심극한정리 정리",done:false,kind:"개념"}]},
@@ -56,7 +56,7 @@ ok("파일 이름", m.packName("확률과통계")==="확률과통계 팩.json", 
 ok("파일명에서 금지문자 제거", m.packName("자료구조/알고리즘")==="자료구조알고리즘 팩.json", m.packName("자료구조/알고리즘"));
 
 // ================= 가져오기 (빈 상태) =================
-mem={}; mem["loop.onboarded"]="1"; mem["loop.profile"]=JSON.stringify({goals:[]});
+mem={}; mem["lf.onboarded"]="1"; mem["lf.profile"]=JSON.stringify({goals:[]});
 delete require.cache[APP]; const m2=require(APP);
 const r=m2.importPack(JSON.stringify(pack),TODAY);
 ok("결과 보고", r.course==="확률과통계" && r.tasks===2 && r.cards===2, JSON.stringify(r));
@@ -82,8 +82,8 @@ ok("목표도 하나", m2.loadProfile().goals.length===1, "");
 ok("복습도 둘", m2.loadReviews().length===2, "");
 
 // ================= 이미 하던 과목에 얹기 =================
-mem={}; mem["loop.onboarded"]="1";
-mem["loop.profile"]=JSON.stringify({goals:[{id:"mine",title:"확률과통계",deadline:"11/5",scope:"",tasks:[{id:"a",text:"내가 적은 과제",done:true,kind:"개념"}]}]});
+mem={}; mem["lf.onboarded"]="1";
+mem["lf.profile"]=JSON.stringify({goals:[{id:"mine",title:"확률과통계",deadline:"11/5",scope:"",tasks:[{id:"a",text:"내가 적은 과제",done:true,kind:"개념"}]}]});
 delete require.cache[APP]; const m3=require(APP);
 m3.importPack(JSON.stringify(pack),TODAY);
 const pf3=m3.loadProfile();

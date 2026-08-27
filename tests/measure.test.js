@@ -16,11 +16,11 @@ const byCls=c=>walk(root,n=>n.className&&n.className.split(" ").indexOf(c)>=0,[]
 const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const TODAY="2026-08-27";
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"x",done:false}]}]});
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"x",done:false}]}]});
 const m=require(APP);
 
 // ================= 아무것도 없으면 아무 말도 안 한다 =================
-m.saveReviews([]); m.saveSessions([]); mem["loop.plans"]=JSON.stringify({});
+m.saveReviews([]); m.saveSessions([]); mem["lf.plans"]=JSON.stringify({});
 let st=m.studyStats(TODAY);
 ok("빈 상태", st.items===0 && st.days===0, JSON.stringify(st));
 ok("없는 건 null", st.perItem===null && st.recallRate===null && st.startRate===null, JSON.stringify(st));
@@ -46,7 +46,7 @@ ok("인출 성공률", st.recallRate===50, String(st.recallRate));
 ok("seen 0 은 성공률에서 빠짐", st.recallRate===50, "");
 
 // ================= 착수율 =================
-mem["loop.plans"]=JSON.stringify({
+mem["lf.plans"]=JSON.stringify({
   "2026-08-25":{blocks:[{id:"a",core:true,onTime:true},{id:"b",core:true,onTime:false},{id:"c",core:false}]},
   "2026-08-26":{blocks:[{id:"d",core:true,onTime:true},{id:"e",core:true,onTime:true}]},
   "2026-08-28":{blocks:[{id:"z",core:true,onTime:true}]}   // 미래는 안 센다

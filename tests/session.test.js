@@ -18,8 +18,8 @@ const btn=t=>walk(root,n=>n.tagName==="BUTTON"&&n.textContent.includes(t),[])[0]
 const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const TODAY="2026-08-27";
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"SQL 조인 쿼리 10개 짜기",done:false,kind:"구현"}]}]});
-mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"SQL 조인 쿼리 10개 짜기",done:false,kind:"구현"}]}]});
+mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
   {id:"b1",time:"09:00-11:00",text:"SQL 조인 쿼리 10개 짜기",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}
 ]}});
 const m=require(APP);
@@ -40,7 +40,7 @@ ok("유형도 남음", ss[0].kind==="구현", ss[0].kind);
 
 // 착수 기록이 없으면 지어내지 않는다
 m.saveSessions([]);
-mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[{id:"b2",time:"14:00-15:00",text:"x",goalId:"g1",taskId:"t1",kind:"개념",done:false}]}});
+mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[{id:"b2",time:"14:00-15:00",text:"x",goalId:"g1",taskId:"t1",kind:"개념",done:false}]}});
 m.finishBlock(TODAY,{id:"b2",time:"14:00-15:00",kind:"개념",goalId:"g1",text:"x"});
 ok("착수 없으면 기록 없음", m.loadSessions().length===0, JSON.stringify(m.loadSessions()));
 
@@ -65,7 +65,7 @@ ok("21일 밖은 무시", m.sessionStats(21,TODAY)===null, JSON.stringify(m.sess
 
 // 실행 모드가 경과를 보여준다
 m.saveSessions([]);
-mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[
+mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[
   {id:"b3",time:"09:00-11:00",text:"x",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]}});
 FIXED=new RealDate(2026,7,27,10,2,0);
 m.openFocus("b3");

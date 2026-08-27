@@ -25,8 +25,8 @@ const PROFILE={goals:[{id:"g1",title:"DB",tasks:[
   {id:"t5",text:"기출 2회분 채점까지",done:false},{id:"t6",text:"6장 정리",done:false}]}]};
 function seed(){
   mem={};
-  mem["loop.profile"]=JSON.stringify(Object.assign({places:"학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만"}, PROFILE));
-  mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"ai",generatedAt:"x",blocks:[
+  mem["lf.profile"]=JSON.stringify(Object.assign({places:"학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만"}, PROFILE));
+  mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"ai",generatedAt:"x",blocks:[
     {id:"b1",time:"09:00-11:00",text:"DB 1강 듣고 필기 2쪽",place:"경북대 중앙도서관",goalId:"g1",taskId:"t1",core:true,done:false},
     {id:"b2",time:"11:00-11:10",text:"물 한 잔 · 눈 휴식",place:"경북대 중앙도서관",core:false,done:false},
     {id:"b3",time:"11:10-12:00",text:"3장 연습문제 1-10번 풀기",place:"경북대 중앙도서관",goalId:"g1",taskId:"t2",core:true,done:false},
@@ -37,7 +37,7 @@ function seed(){
 seed(); const m=require(APP);
 
 // ---------- editableBlocks ----------
-let bs=JSON.parse(mem["loop.plans"])[TODAY].blocks;
+let bs=JSON.parse(mem["lf.plans"])[TODAY].blocks;
 const ed=m.editableBlocks(bs);
 ok("옮길 수 있는 건 3개", ed.length===3, ed.map(x=>x.id).join(","));
 ok("10분 휴식은 제외", ed.every(x=>x.id!=="b2"), "");
@@ -96,7 +96,7 @@ ok("다 썼으면 빈 배열", m.swapCandidates({goals:[{id:"g",title:"x",tasks:
 // ---------- applyEdit: 자리를 옮기면 장소·이동이 다시 계산된다 ----------
 seed(); delete require.cache[APP]; const m2=require(APP);
 const after=m2.applyEdit(TODAY, function(list){ return m2.swapSlots(list,"b3","b5"); });
-ok("저장됨", !!after && JSON.parse(mem["loop.plans"])[TODAY].blocks.length===after.length, "");
+ok("저장됨", !!after && JSON.parse(mem["lf.plans"])[TODAY].blocks.length===after.length, "");
 const study=after.filter(x=>x.taskId==="t2")[0];
 ok("11시 학습이 19시로 감", study.time.indexOf("19:")===0, study.time);
 ok("장소가 집 앞 스터디카페로 바뀜", study.place==="집 앞 스터디카페", study.place);
@@ -104,7 +104,7 @@ ok("이동 블록이 새로 생김", after.some(x=>x.move), after.map(x=>x.text)
 ok("특별 일정 시각은 그대로", after.filter(x=>x.event)[0].time==="14:00-15:00", after.filter(x=>x.event)[0].time);
 ok("정렬 유지", after.every((x,i)=>i===0||m2.blockStartMinutes(after[i-1].time)<=m2.blockStartMinutes(x.time)), after.map(x=>x.time).join(" "));
 ok("겹치지 않음", after.every((x,i)=>i===0||m2.blockEndMinutes(after[i-1].time)<=m2.blockStartMinutes(x.time)), after.map(x=>x.time).join(" "));
-ok("editedAt 기록", !!JSON.parse(mem["loop.plans"])[TODAY].editedAt, "");
+ok("editedAt 기록", !!JSON.parse(mem["lf.plans"])[TODAY].editedAt, "");
 ok("바뀔 게 없으면 저장 안 함", m2.applyEdit(TODAY, function(l){ return m2.swapSlots(l,"b1","b1"); })===null, "");
 ok("없는 날짜는 null", m2.applyEdit("1999-01-01", function(l){ return l; })===null, "");
 
@@ -132,14 +132,14 @@ ok("서랍이 하나만 열림", byCls("swapdrawer").length===1, String(byCls("s
 ok("후보가 뜸", byCls("sdrow").length===4, String(byCls("sdrow").length));
 ok("이미 쓴 과제는 후보에 없음", !allText().includes("DB 1강 듣고 필기 2쪽 | 4장"), "");
 byCls("sdrow")[0].click();
-ok("교체됨", JSON.parse(mem["loop.plans"])[TODAY].blocks.some(x=>x.taskId==="t3"), "");
+ok("교체됨", JSON.parse(mem["lf.plans"])[TODAY].blocks.some(x=>x.taskId==="t3"), "");
 ok("서랍 닫힘", byCls("swapdrawer").length===0, "");
 
 // ↑ 버튼
-const before2=JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(x=>!x.move)[0].text;
+const before2=JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(x=>!x.move)[0].text;
 byCls("rowbtns")[1].children.filter(b=>b.textContent==="↑")[0].click();
-ok("↑ 로 자리 바뀜", JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(x=>!x.move)[0].text!==before2,
-   before2+" -> "+JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(x=>!x.move)[0].text);
+ok("↑ 로 자리 바뀜", JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(x=>!x.move)[0].text!==before2,
+   before2+" -> "+JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(x=>!x.move)[0].text);
 
 // 드래그
 const rows=byCls("block").filter(r=>r.draggable);
@@ -151,10 +151,10 @@ ok("드래그로 자리 바뀜", nowFirst.textContent!==t1 || t1===t2, "");
 ok("드래그 뒤 dragId 정리", byCls("dragging").length===0, "");
 
 // ✕
-const cnt=JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(x=>!x.move).length;
+const cnt=JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(x=>!x.move).length;
 byCls("rowbtn").filter(b=>b.textContent==="✕")[0].click();
-ok("✕ 로 블록이 빠짐", JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(x=>!x.move).length===cnt-1,
-   cnt+" -> "+JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(x=>!x.move).length);
+ok("✕ 로 블록이 빠짐", JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(x=>!x.move).length===cnt-1,
+   cnt+" -> "+JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(x=>!x.move).length);
 
 btn("완료").click();
 ok("나가면 손잡이 사라짐", byCls("handle").length===0, String(byCls("handle").length));

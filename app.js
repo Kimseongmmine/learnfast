@@ -21,11 +21,14 @@ function lsSet(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
 }
 
-const K_PROFILE = "loop.profile";
-const K_PLANS = "loop.plans";
-const K_VISITS = "loop.visits";
-const K_ORKEY = "loop.or_key";
-const K_ORMODEL = "loop.or_model";
+// 저장 키 접두. LOOP 과 같은 오리진(kimseongmmine.github.io)에 배포되므로
+// 반드시 달라야 한다 — 같으면 두 앱이 같은 localStorage 를 덮어쓴다.
+const KP = "lf.";
+const K_PROFILE = KP + "profile";
+const K_PLANS = KP + "plans";
+const K_VISITS = KP + "visits";
+const K_ORKEY = KP + "or_key";
+const K_ORMODEL = KP + "or_model";
 
 // profile text fields the user fills in (all optional), fed to the AI planner
 const PROFILE_FIELDS = [
@@ -127,9 +130,9 @@ function loadPlans() { return lsGet(K_PLANS, {}) || {}; }
 function savePlans(p) { lsSet(K_PLANS, p); }
 
 // ---- energy (배터리) · 회고 · 완주 보관함 ----
-const K_ENERGY = "loop.energy";   // { "YYYY-MM-DD": "high"|"mid"|"low" }
-const K_NOTES = "loop.notes";     // { "YYYY-MM-DD": "한 줄 회고" }
-const K_DONE = "loop.done";       // [{ text, goalTitle, date }]
+const K_ENERGY = KP + "energy";   // { "YYYY-MM-DD": "high"|"mid"|"low" }
+const K_NOTES = KP + "notes";     // { "YYYY-MM-DD": "한 줄 회고" }
+const K_DONE = KP + "done";       // [{ text, goalTitle, date }]
 
 const ENERGY_LEVELS = [
   { key: "high", label: "빵빵", hint: "핵심 3개 + 보너스" },
@@ -278,8 +281,8 @@ function getModel() { try { return localStorage.getItem(K_ORMODEL) || OR_DEFAULT
 function setModel(m) { try { localStorage.setItem(K_ORMODEL, m); } catch (e) {} }
 
 // ---- Google Gemini (more reliable free tier; preferred when a key is set) ----
-const K_GEMKEY = "loop.gemini_key";
-const K_GEMMODEL = "loop.gemini_model";
+const K_GEMKEY = KP + "gemini_key";
+const K_GEMMODEL = KP + "gemini_model";
 const GEM_DEFAULT_MODEL = "gemini-2.0-flash";
 function getGemKey() { try { return localStorage.getItem(K_GEMKEY) || ""; } catch (e) { return ""; } }
 function setGemKey(k) { try { localStorage.setItem(K_GEMKEY, k); } catch (e) {} }
@@ -679,7 +682,7 @@ function moveBlock(from, to, a, b) {
 }
 
 // ---- 특별 일정 (그날 하루만 있는 예외 일정) ----
-const K_EVENTS = "loop.events";   // { "YYYY-MM-DD": "14:00 병원 / 19시-21시 알바" }
+const K_EVENTS = KP + "events";   // { "YYYY-MM-DD": "14:00 병원 / 19시-21시 알바" }
 function loadEvents() { return lsGet(K_EVENTS, {}) || {}; }
 function getEvent(date) { const e = loadEvents()[date]; return e ? String(e) : ""; }
 function setEvent(date, text) {
@@ -751,7 +754,7 @@ function mergeEventBlocks(blocks, text) {
 function dataKeys() {
   return [K_PROFILE, K_PLANS, K_VISITS, K_ENERGY, K_NOTES, K_DONE, K_EVENTS, K_REVIEWS, K_SESSIONS, K_STUCK];
 }
-const K_BACKUP_AT = "loop.backup_at";
+const K_BACKUP_AT = KP + "backup_at";
 const BACKUP_NAME = "loop-backup.json";
 function exportPayload() {
   const data = {};
@@ -1090,7 +1093,7 @@ function daySummary(plan) {
 // ---- 세션 기록 ----
 // 기록이 목적이 아니다. "90분 계획을 실제로 55분 한다"를 알아내 계획을 현실로 끌어내리는 게 목적이다.
 // 사람이 자기 계획을 짜면 실제 수행량의 몇 배로 잡는다는 게 사전등록 RCT 결과다.
-const K_SESSIONS = "loop.sessions";
+const K_SESSIONS = KP + "sessions";
 const SESSION_KEEP = 200;
 function loadSessions() { const v = lsGet(K_SESSIONS, []); return Array.isArray(v) ? v : []; }
 function saveSessions(v) { lsSet(K_SESSIONS, v.slice(-SESSION_KEEP)); }
@@ -1268,7 +1271,7 @@ function paceLine(goal, today, profile) {
 
 // ---- 복습 큐 (간격 반복) ----
 // 틀린 것만 다시 뜬다. 아는 걸 다시 읽는 시간이 사라지는 게 이 기능의 값어치다.
-const K_REVIEWS = "loop.reviews";
+const K_REVIEWS = KP + "reviews";
 // 간격(일). 시뮬레이션(scratchpad/efficiency.js)으로 고른 값 — 15주 학기·54일 뒤 시험 기준
 // [1,3,7,16,35] 대비 시험 당일 91.2 -> 94.0, 2주 뒤 75.2 -> 88.7. 손대는 횟수는 거의 같다.
 // 최대 간격 35일은 학기보다 길어서 한 항목이 시험 전 5주를 안 보이는 일이 생겼다.
@@ -1651,7 +1654,7 @@ function coreStatus(blocks) {
 }
 
 // toggle a block; sync its linked goal task
-const K_STUCK = "loop.stuck";   // { goalId: ["막혔던 지점", ...] }
+const K_STUCK = KP + "stuck";   // { goalId: ["막혔던 지점", ...] }
 function loadStuck() { return lsGet(K_STUCK, {}) || {}; }
 function addStuck(goalId, text) {
   const t = String(text || "").trim();
@@ -2551,7 +2554,7 @@ function renderDaySwitch() {
 
 // ---- 첫 실행 온보딩 ----
 // 개인 기본값을 채워두는 대신 세 가지만 묻는다. 한 화면에 다 있고, 건너뛸 수 있다.
-const K_ONBOARDED = "loop.onboarded";
+const K_ONBOARDED = KP + "onboarded";
 function isOnboarded() { try { return localStorage.getItem(K_ONBOARDED) === "1"; } catch (e) { return true; } }
 function setOnboarded() { try { localStorage.setItem(K_ONBOARDED, "1"); } catch (e) {} }
 function needsOnboard() {
@@ -2694,8 +2697,8 @@ function renderQuote() {
 let notifyTimer = null;
 const notified = {};
 
-function notifyOn() { try { return localStorage.getItem("loop.notify") === "1"; } catch (e) { return false; } }
-function setNotifyOn(v) { try { localStorage.setItem("loop.notify", v ? "1" : "0"); } catch (e) {} }
+function notifyOn() { try { return localStorage.getItem(KP + "notify") === "1"; } catch (e) { return false; } }
+function setNotifyOn(v) { try { localStorage.setItem(KP + "notify", v ? "1" : "0"); } catch (e) {} }
 
 function fireNotice(block) {
   const body = block.time + " · 지금 체크하면 정시";

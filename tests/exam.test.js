@@ -16,7 +16,7 @@ const byCls=c=>walk(root,n=>n.className&&n.className.split(" ").indexOf(c)>=0,[]
 const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const TODAY="2026-08-27";
-mem["loop.profile"]=JSON.stringify({goals:[],exams:"중간고사 10/20 / 기말고사 12/15"});
+mem["lf.profile"]=JSON.stringify({goals:[],exams:"중간고사 10/20 / 기말고사 12/15"});
 const m=require(APP);
 const pf=m.loadProfile();
 
@@ -64,19 +64,19 @@ ok("중간 끝나면 기말 기준으로 2개", m.reviewQuota(P,"2026-10-21")===
 ok("목표가 없어도 학기 시험을 본다", m.reviewQuota({goals:[],exams:pf.exams},"2026-10-18")===5, String(m.reviewQuota({goals:[],exams:pf.exams},"2026-10-18")));
 
 // 과목 우선순위도 마감을 물려받아 돈다
-mem["loop.profile"]=JSON.stringify({exams:"중간고사 9/1 / 기말고사 12/15",goals:[
+mem["lf.profile"]=JSON.stringify({exams:"중간고사 9/1 / 기말고사 12/15",goals:[
   {id:"a",title:"수치해석",deadline:"",tasks:[{id:"t",done:false}]},
   {id:"b",title:"대규모병렬컴퓨팅",deadline:"",tasks:[{id:"t",done:false}]}
 ]});
 const prof2=m.loadProfile();
 const s1=m.courseScore(prof2.goals[0],TODAY,prof2);
-mem["loop.profile"]=JSON.stringify(Object.assign({},prof2,{exams:"기말고사 12/15"}));
+mem["lf.profile"]=JSON.stringify(Object.assign({},prof2,{exams:"기말고사 12/15"}));
 const prof3=m.loadProfile();
 const s2=m.courseScore(prof3.goals[0],TODAY,prof3);
 ok("시험이 가까우면 점수가 높다", s1>s2, s1+" vs "+s2);
 
 // ================= 화면 =================
-mem["loop.profile"]=JSON.stringify({exams:"중간고사 10/20 / 기말고사 12/15",goals:[
+mem["lf.profile"]=JSON.stringify({exams:"중간고사 10/20 / 기말고사 12/15",goals:[
   {id:"g1",title:"확률과통계",deadline:"",scope:"1~6장",tasks:[{id:"a",done:true},{id:"b",done:false}]}]});
 m.goTab("goal");
 ok("역산 줄이 뜬다(마감 안 적었는데도)", byCls("paceline").length===1, String(byCls("paceline").length));

@@ -18,8 +18,8 @@ const btn=t=>walk(root,n=>n.tagName==="BUTTON"&&n.textContent.includes(t),[])[0]
 const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const TODAY="2026-08-27";
-function plan(blocks){ mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:blocks}}); }
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"x",done:false}]}]});
+function plan(blocks){ mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:blocks}}); }
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"x",done:false}]}]});
 const m=require(APP);
 
 // ================= 큐가 스스로 찬다 =================
@@ -63,7 +63,7 @@ ok("판정 줄 렌더", byCls("recallrow").length===1, String(byCls("recallrow")
 
 btn("기억났다").click();
 ok("기억났다 -> 상자 2", m.loadReviews()[0].box===2, JSON.stringify(m.loadReviews()[0]));
-ok("블록도 완료됨", JSON.parse(mem["loop.plans"])[TODAY].blocks[0].done===true, "");
+ok("블록도 완료됨", JSON.parse(mem["lf.plans"])[TODAY].blocks[0].done===true, "");
 
 // 틀림 경로
 m.saveReviews([{id:"rr2",goalId:"g1",kind:"유도",text:"뉴턴법 수렴차수",due:"2026-08-25",box:4,missed:"",seen:3}]);

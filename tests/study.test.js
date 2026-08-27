@@ -18,7 +18,7 @@ const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 // 실제 수강 과목 5개
 const COURSES=["데이터베이스","확률과통계","수치해석","기계학습개론","대규모병렬컴퓨팅"];
-mem["loop.profile"]=JSON.stringify({places:"학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만",goals:COURSES.map(function(t,i){
+mem["lf.profile"]=JSON.stringify({places:"학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만",goals:COURSES.map(function(t,i){
   return {id:"g"+i,title:t,note:"",deadline:"",scope:"",tasks:[]};
 })});
 const m=require(APP);
@@ -156,7 +156,7 @@ const filled2=m.fillPlaces([{id:"y",time:"09:00-11:00",text:"정규화 정리",t
 ok("개념은 도서관", filled2[0].place==="학교 도서관", filled2[0].place);
 
 // ================= 화면 =================
-mem["loop.plans"]=JSON.stringify({"2026-08-27":{source:"template",generatedAt:"x",blocks:blocks}});
+mem["lf.plans"]=JSON.stringify({"2026-08-27":{source:"template",generatedAt:"x",blocks:blocks}});
 m.goTab("today");
 ok("유형 칩 렌더", byCls("kindchip").length>=1, String(byCls("kindchip").length));
 const drill=blocks.filter(b=>b.taskId&&(b.kind==="개념"||b.kind==="유도"));

@@ -18,8 +18,8 @@ const byCls=c=>walk(root,n=>n.className&&n.className.split(" ").indexOf(c)>=0,[]
 const btn=t=>walk(root,n=>n.tagName==="BUTTON"&&n.textContent===t,[])[0];
 
 const TODAY="2026-08-27";
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[{id:"t1",text:"3장 풀기",done:false}]}]});
-mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[{id:"t1",text:"3장 풀기",done:false}]}]});
+mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
   {id:"b1",time:"09:00-11:00",text:"3장 풀기",place:"경북대 중앙도서관",goalId:"g1",taskId:"t1",core:true,done:false},
   {id:"b2",time:"11:00-12:00",text:"점심",place:"경북대 중앙도서관",done:false}
 ]}});

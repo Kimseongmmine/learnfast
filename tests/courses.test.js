@@ -19,7 +19,7 @@ const TODAY="2026-08-27";
 function tasks(n){ return Array.from({length:n},(_,i)=>({id:"t"+i,text:"과제"+i,done:false,kind:"개념"})); }
 function seed(over){
   mem={};
-  mem["loop.profile"]=JSON.stringify({goals:[
+  mem["lf.profile"]=JSON.stringify({goals:[
     {id:"g1",title:"데이터베이스",deadline:"",scope:"",hard:true,tasks:tasks(4)},
     {id:"g2",title:"확률과통계",deadline:"",scope:"",hard:true,tasks:tasks(4)},
     {id:"g3",title:"수치해석",deadline:"",scope:"",tasks:tasks(4)},
@@ -51,7 +51,7 @@ const plans={};
     {id:"y"+i,time:"11:00-12:00",text:"t",goalId:"g2",taskId:"t0"},
     {id:"z"+i,time:"14:00-15:00",text:"t",goalId:"g4",taskId:"t0"}]};
 });
-mem["loop.plans"]=JSON.stringify(plans);
+mem["lf.plans"]=JSON.stringify(plans);
 ok("어제 한 과목은 최근", m.lastTouched("g1",TODAY,14)===m.addDays(TODAY,-1), m.lastTouched("g1",TODAY,14));
 ok("안 한 과목은 null", m.lastTouched("g3",TODAY,14)===null, String(m.lastTouched("g3",TODAY,14)));
 day=m.dailyCourses(m.loadProfile(),TODAY,3);
@@ -97,7 +97,7 @@ ok("격려 문구 없음", !/힘내|화이팅|할 수 있|괜찮/.test(m.paceLin
 
 // ================= 계획에 반영 =================
 seed({g5:{deadline:"8/30"}});
-mem["loop.plans"]=JSON.stringify({});
+mem["lf.plans"]=JSON.stringify({});
 const prof=m.loadProfile();
 const chosen=m.dailyCourses(prof,TODAY,m.DAILY_COURSES);
 const cands=m.nextPendingTasks({goals:chosen},6);
@@ -107,7 +107,7 @@ ok("고른 과목에서만 나옴", cands.every(c=>chosen.some(g=>g.id===c.goalI
 
 // ================= 화면 =================
 seed({g2:{deadline:"10/20",scope:"1~6장"}});
-const _cp=m.loadProfile(); _cp.exams="중간고사 10/20 / 기말고사 12/15"; mem["loop.profile"]=JSON.stringify(_cp);
+const _cp=m.loadProfile(); _cp.exams="중간고사 10/20 / 기말고사 12/15"; mem["lf.profile"]=JSON.stringify(_cp);
 m.goTab("goal");
 ok("역산 줄 렌더", byCls("paceline").length>=1, String(byCls("paceline").length));
 ok("역산 내용", /D-54/.test(allText()), (allText().match(/D-\d+[^|]*/)||[""])[0]);

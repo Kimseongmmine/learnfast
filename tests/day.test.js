@@ -17,7 +17,7 @@ const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 // 접힌 덩이 안은 화면에 없다. .blocks 의 바로 아래 자식만이 첫 화면이다.
 const topRows=()=>{const w=byCls("blocks")[0]; return w?w.children.filter(c=>/(^| )(block|microrow)( |$)/.test(c.className)):[];};
 
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[
   {id:"t1",text:"DB 1강 듣고 필기 2쪽",done:false},{id:"t2",text:"3장 연습문제 1-10번 풀기",done:false},
   {id:"t3",text:"4장 요약 정리",done:false},{id:"t4",text:"5장 예제 따라치기",done:false}]}]});
 const m=require(APP);
@@ -40,15 +40,15 @@ ok("같은 장소면 0", m.commuteBetween("집","집",r)===0);
 ok("모르는 장소는 프로필의 대표 이동시간", m.commuteBetween("집","학원",r)===25, m.commuteBetween("집","학원",r));
 
 // 옛 기본값만 새 기본값으로 올린다
-mem["loop.profile"]=JSON.stringify({goals:[],places:"경북대 중앙도서관 / 집 책상 / 카페는 3시간 이상 앉을 때만 / 수영장"});
+mem["lf.profile"]=JSON.stringify({goals:[],places:"경북대 중앙도서관 / 집 책상 / 카페는 3시간 이상 앉을 때만 / 수영장"});
 ok("적어둔 값은 그대로", m.loadProfile().places.indexOf("경북대")>=0, m.loadProfile().places);
-mem["loop.profile"]=JSON.stringify({goals:[],places:"내가 적은 장소 / 독서실"});
+mem["lf.profile"]=JSON.stringify({goals:[],places:"내가 적은 장소 / 독서실"});
 ok("직접 적은 값은 안 건드림", m.loadProfile().places==="내가 적은 장소 / 독서실", m.loadProfile().places);
-mem["loop.profile"]=JSON.stringify({goals:[],places:""});
+mem["lf.profile"]=JSON.stringify({goals:[],places:""});
 ok("지운 값은 그대로 빈칸", m.loadProfile().places==="", JSON.stringify(m.loadProfile().places));
 
 // ---------- fillPlaces: 저녁은 집 근처 ----------
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[{id:"t1",text:"x",done:false}]}],places:"학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만"});
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[{id:"t1",text:"x",done:false}]}],places:"학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만"});
 const prof2=m.loadProfile();
 const fp=m.fillPlaces([
   {id:"a",time:"14:00-15:50",text:"4장 요약 정리",taskId:"t3",core:true},
@@ -92,10 +92,10 @@ ok("특별 일정은 micro 아님", m.isMicroBlock({time:"14:00-14:20",text:"병
 
 // ---------- splitDay ----------
 // 위에서 과제 1개짜리로 덮어썼으니 되돌린다
-mem["loop.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[
+mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"DB",tasks:[
   {id:"t1",text:"DB 1강 듣고 필기 2쪽",done:false},{id:"t2",text:"3장 연습문제 1-10번 풀기",done:false},
   {id:"t3",text:"4장 요약 정리",done:false},{id:"t4",text:"5장 예제 따라치기",done:false}]}]});
-const _dp=m.loadProfile(); _dp.places="학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만"; mem["loop.profile"]=JSON.stringify(_dp);
+const _dp=m.loadProfile(); _dp.places="학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만"; mem["lf.profile"]=JSON.stringify(_dp);
 const day=m.insertCommutes(m.fillPlaces(m.templatePlan(m.nextPendingTasks(m.loadProfile(),6)),m.loadProfile()), m.placeRules(m.loadProfile()));
 ok("하루가 15행 미만", day.length<=14, String(day.length));
 ok("이동은 4개 이하", day.filter(x=>x.move).length<=4, String(day.filter(x=>x.move).length));
@@ -121,7 +121,7 @@ ok("spanText", m.spanText([{time:"12:00-13:00"},{time:"21:00-22:00"}])==="12:00~
 ok("빈 목록은 빈 문자열", m.spanText([])==="");
 
 // ---------- 화면 ----------
-mem["loop.plans"]=JSON.stringify({"2026-08-26":{source:"template",generatedAt:"x",blocks:day}});
+mem["lf.plans"]=JSON.stringify({"2026-08-26":{source:"template",generatedAt:"x",blocks:day}});
 FIXED=new RealDate(2026,7,26,9,30,0);
 m.render();
 const t=allText();

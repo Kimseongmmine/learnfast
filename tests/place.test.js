@@ -16,7 +16,7 @@ const byCls=c=>walk(root,n=>n.className&&n.className.split(" ").indexOf(c)>=0,[]
 const btn=t=>walk(root,n=>n.tagName==="BUTTON"&&n.textContent.includes(t),[])[0];
 
 async function main(){
-  mem["loop.profile"]=JSON.stringify({places:"경북대 중앙도서관 / 집 책상 / 카페는 3시간 이상 앉을 때만 / 수영장 · 집→학교 25분",
+  mem["lf.profile"]=JSON.stringify({places:"경북대 중앙도서관 / 집 책상 / 카페는 3시간 이상 앉을 때만 / 수영장 · 집→학교 25분",
     goals:[{id:"g1",title:"DB",tasks:[{id:"t1",text:"DB 1강 듣기",done:false},{id:"t2",text:"3장 1-10번 풀기",done:false},{id:"t3",text:"4장 요약",done:false},{id:"t4",text:"5장 예제",done:false}]}]});
   delete require.cache[APP]; const m=require(APP);
   const prof=m.loadProfile();
@@ -70,7 +70,7 @@ async function main(){
   // --- 생성(AI 없음 -> 템플릿) 전체 경로 ---
   btn("오늘 계획 생성").click();
   await new Promise(r2=>setTimeout(r2,0));
-  const plan=JSON.parse(mem["loop.plans"])["2026-08-26"];
+  const plan=JSON.parse(mem["lf.plans"])["2026-08-26"];
   ok("모든 계획 블록에 장소(이동 제외)", plan.blocks.every(b=>b.move||b.place), plan.blocks.map(b=>b.time+" "+(b.place||"-")).join(" / "));
   ok("이동 블록 생성됨", plan.blocks.some(b=>b.move), plan.blocks.map(b=>b.text).join(" / "));
   const mins=plan.blocks.map(b=>m.blockStartMinutes(b.time));
@@ -82,13 +82,13 @@ async function main(){
   ok("이동 블록 클래스", byCls("isMove").length>0, "");
 
   // --- 프로필 기본값 ---
-  mem["loop.profile"]=JSON.stringify({goals:[]});
+  mem["lf.profile"]=JSON.stringify({goals:[]});
   // main 은 기본값을 안 채우고(온보딩이 받는다), personal 은 내 장소를 채워둔다.
 const SEEDS=!!(m.MY_PLACES||"");
 ok(SEEDS?"개인용은 내 장소를 채워둠":"공개판은 빈 채로",
    SEEDS ? m.loadProfile().places===m.MY_PLACES : m.loadProfile().places==="",
    JSON.stringify(m.loadProfile().places));
-  mem["loop.profile"]=JSON.stringify({goals:[],places:""});
+  mem["lf.profile"]=JSON.stringify({goals:[],places:""});
   ok("지운 값은 그대로 빈칸", m.loadProfile().places==="", JSON.stringify(m.loadProfile().places));
   ok("AI 컨텍스트에 장소", m.profileContext({places:"중앙도서관 / 집"}).indexOf("중앙도서관")>=0, m.profileContext({places:"중앙도서관 / 집"}));
 

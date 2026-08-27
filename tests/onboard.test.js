@@ -80,7 +80,7 @@ ok("빈 프로필", m2.loadProfile().courses==="" && m2.loadProfile().goals.leng
 ok("다시 안 뜬다", m2.needsOnboard()===false, "");
 
 // 목표를 직접 만든 사람에게는 안 뜬다
-mem={}; mem["loop.profile"]=JSON.stringify({goals:[{id:"g",title:"x",tasks:[]}]});
+mem={}; mem["lf.profile"]=JSON.stringify({goals:[{id:"g",title:"x",tasks:[]}]});
 delete require.cache[APP]; const m3=require(APP);
 ok("목표가 있으면 안 뜬다", m3.needsOnboard()===false, "");
 

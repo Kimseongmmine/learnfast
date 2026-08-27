@@ -18,7 +18,7 @@ const btn=t=>walk(root,n=>n.tagName==="BUTTON"&&n.textContent.includes(t),[])[0]
 const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const TODAY="2026-08-27";
-mem["loop.profile"]=JSON.stringify({goals:[
+mem["lf.profile"]=JSON.stringify({goals:[
   {id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"정규화 1NF~3NF 정리",done:false,kind:"개념"},{id:"t2",text:"SQL 조인 쿼리 10개 짜기",done:false,kind:"구현"}]},
   {id:"g2",title:"수치해석",tasks:[{id:"t3",text:"뉴턴법 수렴차수 유도",done:false,kind:"유도"}]}
 ]});
@@ -99,7 +99,7 @@ ok("복습 블록은 핵심", rb.core===true, String(rb.core));
 ok("과제 블록은 taskId 유지", blocks.filter(b=>b.taskId).length>=1, "");
 
 // ================= 실행 모드에서 한 줄 =================
-mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
+mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
   {id:"b1",time:"09:00-11:00",text:"복습 — 정규화 1NF~3NF",goalId:"g1",reviewId:"rr",kind:"개념",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true},
   {id:"b2",time:"11:00-12:30",text:"SQL 조인 쿼리 10개 짜기",goalId:"g1",taskId:"t2",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T02:00:00.000Z",onTime:true}
 ]}});
@@ -131,17 +131,17 @@ ok("막힘 기록에도 남음", (m.loadStuck()["g1"]||[]).indexOf("shared memor
 ok("초안은 비워짐", true, "");
 
 // ================= 막힘 =================
-mem["loop.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
+mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
   {id:"b3",time:"09:00-11:00",text:"CUDA 커널 짜기",goalId:"g1",taskId:"t2",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}
 ]}});
 m.openFocus("b3");
 ok("막힘 프롬프트 버튼", !!btn("막힘 — 다음 한 걸음만"), "");
 ok("첫 1개만 버튼", !!btn("첫 1개만"), "");
 btn("첫 1개만").click();
-const nb=JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(b=>b.id==="b3")[0];
+const nb=JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(b=>b.id==="b3")[0];
 ok("과제가 줄어듦", /^첫 1개만 · /.test(nb.text), nb.text);
 btn("첫 1개만").click();
-const nb2=JSON.parse(mem["loop.plans"])[TODAY].blocks.filter(b=>b.id==="b3")[0];
+const nb2=JSON.parse(mem["lf.plans"])[TODAY].blocks.filter(b=>b.id==="b3")[0];
 ok("두 번 눌러도 한 번만 붙음", (nb2.text.match(/첫 1개만/g)||[]).length===1, nb2.text);
 
 console.log(f?("\nFAILED "+f):"\nREVIEW OK");
