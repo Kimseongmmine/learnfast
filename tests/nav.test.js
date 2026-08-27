@@ -69,15 +69,48 @@ m.goTab("me");
 byCls("tab")[0].click();
 ok("설정에서 탭바로 오늘 복귀", m.currentTab()==="today", m.currentTab());
 
-// ---------- CSS: 데스크톱 규칙이 기본 규칙보다 뒤에 있어야 한다 ----------
+// ---------- CSS: 데스크톱은 좌측 사이드바 ----------
+// 이 단언들이 지키는 것:
+// (1) 미디어 쿼리 순서 — 앞에 두면 일부 속성만 먹어서 넓은 화면이 반쯤 깨진다. 실제로 한 번 그랬다.
+// (2) 사이드바 폭과 본문 여백이 같은 값 — 어긋나면 본문이 사이드바에 깔리거나 빈 홈이 남는다.
+//     그래서 숫자를 두 번 적지 않고 --sidew 하나로 묶는다.
 const css=fs.readFileSync(CSS,"utf8");
 const base=css.indexOf(".tabbar {");
 const wide=css.indexOf(".tabbar {", base+1);
 ok("탭바 규칙이 두 개", base>=0 && wide>base, "base="+base+" wide="+wide);
 ok("데스크톱 규칙이 뒤에 온다", wide>base, "");
-const block=css.slice(wide, wide+300);
-ok("가운데 정렬이 온전함", /left:\s*50%/.test(block) && /right:\s*auto/.test(block) && /translateX\(-50%\)/.test(block), block.slice(0,140));
-ok("기본 규칙엔 transform 없음", !/transform/.test(css.slice(base, wide)), css.slice(base, base+200));
+
+const MQ="@media (min-width: 900px)";
+const mqStart=css.lastIndexOf(MQ, wide);
+ok("사이드바는 넓은 화면 전용", mqStart>=0 && mqStart<wide, "mq="+mqStart);
+
+const mq=css.slice(mqStart);                       // 넓은 화면 블록 전체
+const baseBlock=css.slice(base, wide);             // 좁은 화면 규칙
+const wideBlock=css.slice(wide, css.indexOf("}", wide)+1);
+
+// 좁은 화면은 안 바뀐다 — 하단 고정 바 그대로
+ok("좁은 화면은 하단 바",
+  /bottom:\s*0/.test(baseBlock) && /left:\s*0/.test(baseBlock) && /right:\s*0/.test(baseBlock),
+  baseBlock.slice(0,160));
+
+// 넓은 화면은 좌측 세로 사이드바
+ok("사이드바가 왼쪽 끝에 붙는다",
+  /left:\s*0/.test(wideBlock) && /right:\s*auto/.test(wideBlock), wideBlock.slice(0,200));
+ok("사이드바가 세로로 선다", /flex-direction:\s*column/.test(wideBlock), wideBlock.slice(0,200));
+
+// 위치를 transform 으로 만들지 않는다. 옛 버그가 translateX 로 자리를 잡다가 났다.
+ok("어디에도 transform 없음", !/transform/.test(baseBlock) && !/transform/.test(wideBlock), "");
+
+// 폭과 여백이 한 값에 묶여 있다 — 새 레이아웃의 진짜 실패 모드가 여기다
+ok("사이드바 폭이 한 곳에 정의됨", /--sidew:\s*\d+px/.test(mq), "");
+ok("사이드바 폭은 변수로", /width:\s*var\(--sidew\)/.test(wideBlock), wideBlock.slice(0,200));
+ok("본문이 딱 그만큼 비켜난다", /padding-left:\s*var\(--sidew\)/.test(mq), "");
+
+// 실행 모드·온보딩은 사이드바를 안 그린다 → 빈 홈도 남기지 않는다
+ok("사이드바 없는 화면은 여백도 없다", /:has\([^)]*\.focus\)/.test(mq), "");
+
+// ← 오늘: DOM 엔 남기고(위 단언) 데스크톱에서만 숨긴다
+ok("데스크톱에선 ← 오늘 숨김", /\.backbtn\s*\{[^}]*display:\s*none/.test(mq), "");
 
 console.log(f?("\nFAILED "+f):"\nNAV OK");
 process.exit(f?1:0);

@@ -69,10 +69,6 @@ html, body {
   gap: 16px;
 }
 
-/* wide screens: 탭마다 페이지가 짧아졌으므로 한 줄로 세우고 가운데만 넓힌다 */
-@media (min-width: 900px) {
-  #screen { max-width: 760px; }
-}
 
 /* cards */
 .prog, .today, .settings, .note, .flow, .footer, .tools, .goals, .intro,
@@ -212,7 +208,29 @@ h2 {
 .block.isMove { opacity: 0.72; }
 .block.isMove .txt { color: var(--faint); font-size: 14px; }
 
-input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent); flex: none; }
+/* 원형 체크박스. appearance:none 이 accent-color 를 무력화하므로 같이 지운다.
+   선례: .dot 이 이미 같은 문법이다(원형 테두리 → 채움). */
+input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 20px; height: 20px; flex: none; margin: 0;
+  display: inline-grid; place-content: center;
+  border: 1.5px solid var(--field-line); border-radius: 50%;
+  background: transparent; cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+input[type="checkbox"]:hover:not(:disabled) { border-color: var(--accent); }
+input[type="checkbox"]::before {
+  content: ""; width: 10px; height: 10px; transform: scale(0);
+  /* #fff 를 쓰면 안 된다 — 다크에서 --accent 가 #7dd3fc 라 흰 체크가 1.5:1 로 사라진다.
+     --card 는 라이트 #fff / 다크 #0e1721 이라 양쪽 모두 채움색과 대비된다. */
+  background: var(--card);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+input[type="checkbox"]:checked::before { transform: scale(1); }
+input[type="checkbox"]:disabled { cursor: default; }
+/* 원형에는 원형 포커스 링. :where() 규칙이 6px 를 주는데 특이도 0 이라 이 줄이 이긴다 */
+input[type="checkbox"]:focus-visible { border-radius: 50%; }
 .block.open { background: var(--now-soft); }
 .badge { flex: none; margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 3px; letter-spacing: 0.06em; border: 1px solid currentColor; background: transparent !important; }
 .badge.late { color: var(--muted); }
@@ -325,6 +343,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 @keyframes ripple { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
 @media (prefers-reduced-motion: reduce) { .nowbar.active .nlabel::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { input[type="checkbox"] { transition: none; } }
 
 /* 시각 눈금 축 — 시간이 위에서 아래로 흐른다 */
 .today .block { position: relative; }
@@ -411,15 +430,6 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   display: flex; gap: 0;
   padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
   background: var(--card); border-top: 1px solid var(--line);
-}
-/* 넓은 화면에서는 가운데로. 이 규칙은 반드시 위 기본 규칙 **뒤에** 있어야 한다 */
-@media (min-width: 900px) {
-  .tabbar {
-    left: 50%; right: auto; transform: translateX(-50%);
-    width: 760px; max-width: 100vw;
-    border-radius: 14px 14px 0 0;
-    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
-  }
 }
 .tab {
   flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -627,3 +637,77 @@ section.settings, section.goals {
 
 /* 과목 팩 — 목표 카드 오른쪽 작은 버튼 */
 .packbtn { flex: none; margin-left: auto; }
+
+/* ═══ 넓은 화면 = 좌측 사이드바 레이아웃 ═══
+   이 블록은 반드시 파일 맨 끝에 둔다. 덮으려는 기본 규칙(#screen, body,
+   .tabbar, .tab, section.settings, .tools, .measure)이 전부 이 위에 있어야 이긴다.
+   과거에 미디어 쿼리를 앞에 뒀다가 탭바가 화면 밖으로 나갔다. */
+@media (min-width: 900px) {
+  /* 사이드바 폭. 본문 여백과 반드시 같은 값이어야 해서 변수 하나로 묶는다 */
+  :root { --sidew: 240px; }
+
+  /* 하단 바 → 좌측 고정 사이드바. DOM 은 그대로다 — .tabbar 는 position:fixed 라
+     #screen 의 마지막 자식이어도 시각 위치와 무관하다. */
+  .tabbar {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: var(--sidew);
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 2px;
+    padding: 20px 12px;
+    background: var(--bg);
+    border-top: none;
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+  }
+
+  /* 아이콘 왼쪽 · 라벨 오른쪽. flex:1 1 0 을 반드시 풀어야 한다 —
+     세로 컨테이너에서 그대로 두면 탭 4개가 화면 높이를 4등분해 늘어난다. */
+  .tab {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 9px 12px;
+    min-height: 40px;
+    border-radius: 8px;
+    text-align: left;
+  }
+  /* 이모지 폭이 제각각이라(⚙ 가 특히 좁다) 고정 폭으로 라벨 왼쪽을 세로로 맞춘다 */
+  .ticon { font-size: 16px; width: 20px; flex: none; text-align: center; }
+  .tlabel { font-size: 14px; font-weight: 600; letter-spacing: 0; }
+  .tab:hover { background: var(--neutral-soft); }
+  .tab.on { background: var(--accent-soft); }
+  .tab.on .tlabel { font-weight: 700; }
+
+  /* 본문이 사이드바 밑에 깔리지 않게. 같은 --sidew 를 쓴다 —
+     폭과 여백이 따로 놀면 언젠가 반드시 어긋난다. */
+  body { padding-left: var(--sidew); padding-bottom: 0; }
+  #screen { max-width: 760px; }
+
+  /* 실행 모드·온보딩은 탭바를 안 그린다(render 가 건너뛴다). 사이드바가 없으니
+     240px 빈 홈도 남기지 않는다. DOM 은 그대로. */
+  body:has(#screen > .focus),
+  body:has(#screen > .onboard) { padding-left: 0; }
+
+  /* 사이드바가 늘 보이면 '← 오늘'은 같은 일을 두 번 시키는 버튼이다.
+     DOM 은 남긴다 — 좁은 화면에선 필요하고 nav.test.js 가 존재를 단언한다. */
+  .topbar .backbtn { display: none; }
+
+  /* ── 밀도: 넓은 화면에만. 좁은 화면은 '첫 화면 4행'이 걸려 있어 안 건드린다 ── */
+  .block { padding: 14px 10px; gap: 14px; }
+  .block .txt { font-size: 16px; }
+  .task { padding: 13px 0; }
+  #screen { gap: 20px; }
+  h2 { margin-bottom: 16px; }
+
+  /* section.settings·.tools·.measure 가 각자 padding 20px 를 따로 갖고 있어
+     선택자를 전부 나열해야 이긴다. 이 블록이 파일 맨 끝이라 순서는 안전하다. */
+  .prog, .today, .settings, .note, .flow, .footer, .tools, .goals,
+  .intro, .measure, .onboard,
+  section.settings, section.goals { padding: 22px 24px; }
+  /* 스트릭 카드는 원래 좁게 잡아둔 것이라 예외 */
+  .footer { padding: 14px 20px; }
+}
