@@ -114,7 +114,30 @@ python -m http.server 8000
 ```
 `http://localhost:8000`
 
-빌드 도구도 의존성도 없습니다. 파일 네 개(`index.html` `app.js` `style.css` `manifest.json`)가 전부입니다.
+빌드 도구도 의존성도 없습니다. 앱은 파일 네 개(`index.html` `app.js` `style.css` `manifest.json`)가 전부입니다.
+
+## 테스트
+
+```
+node tests/run.js
+```
+
+15개 스위트, 1.5초. **네트워크도 실제 시각도 쓰지 않습니다** — `document` · `localStorage` · `fetch` · `Date` 를 전부 가짜로 주입해서
+같은 입력이면 항상 같은 결과가 나옵니다. 테스트 프레임워크도 안 씁니다(`node` 만 있으면 됩니다).
+
+`app.js` 끝에서 브라우저와 node 를 갈라놓기 때문에 가능합니다:
+
+```js
+if (typeof module !== "undefined" && module.exports) { module.exports = { ... }; }
+if (typeof document !== "undefined") boot();
+```
+
+고칠 때 최소한 이건 확인하세요:
+
+- **`pack`** — 팩에 개인 기록(완료·상자·틀린 지점)이 안 섞이는지. 있어야 할 필드보다 **없어야 할 필드**를 검사합니다
+- **`onboard`** — 깨끗한 상태에서 첫 화면이 뜨고, 답한 것이 목표·시험·장소로 들어가는지
+- **`focus`** — 착수한 두 시간짜리 블록이 끝나고 완료되는지. 이걸 놓치면 앱이 망가집니다
+- **`nav`** — 스타일시트를 직접 읽어서 미디어 쿼리가 기본 규칙보다 뒤에 있는지 검사합니다. 순서가 뒤집히면 데스크톱에서 탭바가 화면 밖으로 나갑니다
 
 ## 라이선스
 
