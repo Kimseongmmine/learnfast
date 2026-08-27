@@ -19,6 +19,15 @@ const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 
 const m=require(APP);
 
+// personal 브랜치는 내 기본값이 채워져 있어서 온보딩이 뜰 이유가 없다.
+// 그것 자체가 확인할 값어치가 있는 동작이라, 여기서 끝낸다.
+if (m.MY_COURSES) {
+  ok("개인용은 온보딩을 안 띄운다", m.needsOnboard()===false, "");
+  ok("대신 내 과목이 채워져 있다", m.loadProfile().courses===m.MY_COURSES, m.loadProfile().courses);
+  console.log("\nONBOARD OK");
+  process.exit(0);
+}
+
 // ================= 처음 열면 온보딩만 =================
 ok("온보딩 필요", m.needsOnboard()===true, "");
 m.render();

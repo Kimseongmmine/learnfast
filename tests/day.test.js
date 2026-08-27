@@ -24,8 +24,11 @@ const m=require(APP);
 const prof=m.loadProfile();
 
 // ---------- 장소별 이동 시간 ----------
-// 공개판은 기본값을 안 채운다. 남의 대학 이름을 넣어주는 건 도움이 아니다.
-ok("기본값을 안 채운다", prof.places==="", JSON.stringify(prof.places));
+// main 은 안 채우고 personal 은 내 장소를 채운다. 둘 다 맞다.
+const SEEDS=!!(m.MY_PLACES||"");
+ok(SEEDS?"개인용은 채워둠":"공개판은 빈 채로",
+   SEEDS ? prof.places===m.MY_PLACES : prof.places==="",
+   JSON.stringify(prof.places));
 prof.places="학교 도서관 25분 / 집 앞 스터디카페 5분 / 집 책상 / 체육관 15분 / 카페는 3시간 이상 앉을 때만";
 const r=m.placeRules(prof);
 ok("저녁 학습 장소", r.night==="집 앞 스터디카페", r.night);

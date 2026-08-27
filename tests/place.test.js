@@ -83,8 +83,11 @@ async function main(){
 
   // --- 프로필 기본값 ---
   mem["loop.profile"]=JSON.stringify({goals:[]});
-  // 공개판은 기본값을 안 채운다. 남의 대학 이름을 넣어주는 게 도움이 아니기 때문.
-ok("장소 미입력이면 빈 채로", m.loadProfile().places==="", JSON.stringify(m.loadProfile().places));
+  // main 은 기본값을 안 채우고(온보딩이 받는다), personal 은 내 장소를 채워둔다.
+const SEEDS=!!(m.MY_PLACES||"");
+ok(SEEDS?"개인용은 내 장소를 채워둠":"공개판은 빈 채로",
+   SEEDS ? m.loadProfile().places===m.MY_PLACES : m.loadProfile().places==="",
+   JSON.stringify(m.loadProfile().places));
   mem["loop.profile"]=JSON.stringify({goals:[],places:""});
   ok("지운 값은 그대로 빈칸", m.loadProfile().places==="", JSON.stringify(m.loadProfile().places));
   ok("AI 컨텍스트에 장소", m.profileContext({places:"중앙도서관 / 집"}).indexOf("중앙도서관")>=0, m.profileContext({places:"중앙도서관 / 집"}));
