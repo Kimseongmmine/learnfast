@@ -127,6 +127,20 @@ app.use(function (err, req, res, next) {
 // 기본값이나 "localhost" 로 두면 같은 컴퓨터 안에서만 접속이 되는데,
 // 배포 환경에서는 요청이 바깥에서 들어오므로 그렇게 두면 "서버는 켜졌는데 아무도 못 들어오는"
 // 상태가 된다. 배포 첫날 가장 흔히 밟는 함정이라 처음부터 박아둔다.
-app.listen(PORT, "0.0.0.0", function () {
-  console.log("learnfast server listening on port " + PORT);
-});
+//
+// ── 여기서 앱과 라이브러리를 가른다 ──────────────────────────
+// require.main 은 "node 가 맨 처음 실행한 파일" 이다.
+//   node src/index.js  로 켜면   require.main === module  → 참  → 서버가 뜬다
+//   테스트가 require 하면          require.main === module  → 거짓 → 안 뜬다
+//
+// 이게 없으면 테스트가 이 파일을 불러오는 순간 3000번 포트를 붙잡는다.
+// client/app.js 끝에 있는 두 줄과 정확히 같은 수법이다 -
+// 한 파일이 "실행되는 앱" 이면서 동시에 "가져다 쓰는 라이브러리" 가 된다.
+if (require.main === module) {
+  app.listen(PORT, "0.0.0.0", function () {
+    console.log("learnfast server listening on port " + PORT);
+  });
+}
+
+// 테스트는 이 app 을 받아서 아무 빈 포트에나 띄운다.
+module.exports = app;

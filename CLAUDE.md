@@ -73,6 +73,25 @@ if (typeof document !== "undefined") boot();
 **`push` 하면 GitHub Actions 가 같은 명령을 돌리고, 실패하면 배포가 안 된다.**
 깨진 앱이 사이트에 올라가는 길을 막는 관문이다(`.github/workflows/pages.yml`).
 
+### 서버 테스트
+```
+cd server && npm test      # tests/run.js
+```
+**진짜 DB 도 네트워크도 안 쓴다.** `tests/fakedb.js` 가 `require.cache` 에 가짜를 미리 심어서
+`src/db.js` 가 아예 안 읽히게 한다 — 앱 테스트가 `document`·`localStorage` 를 가짜로 주입하는 것과 같은 수법이다.
+그래서 CI 가 `DATABASE_URL` 없이 돌린다.
+
+`src/index.js` 는 `require.main === module` 일 때만 `listen` 한다.
+안 그러면 테스트가 파일을 불러오는 순간 3000번 포트를 붙잡는다.
+서버는 `app.listen(0)` 으로 **빈 포트에 띄우고 진짜 `fetch` 로 두드린다** — 상태 코드까지 실제와 같다.
+
+`BCRYPT_COST` 를 주면 해시 비용을 낮춘다. **테스트에서만 쓴다**(4). 환경변수가 없으면 항상 12 라
+배포에서 실수로 약해질 길이 없다.
+
+**끝낼 때 `process.exit()` 를 쓰지 말 것.** 윈도우에서 닫히는 중인 소켓이 남은 채 강제 종료하면
+`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` 로 죽는다 —
+검사는 전부 통과했는데 프로세스는 실패로 끝난다. `closeAllConnections()` 후 `process.exitCode` 만 정한다.
+
 ---
 
 ## 데이터 모델 (localStorage)

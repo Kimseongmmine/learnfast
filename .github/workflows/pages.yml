@@ -39,7 +39,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # 프론트 15개. 의존성이 없어서 설치할 것도 없다.
       - run: node tests/run.js
+      # 서버. npm ci 는 package-lock.json 에 적힌 버전을 그대로 받는다
+      # (npm install 은 범위 안에서 더 새 버전을 골라올 수 있어서 CI 에서는 ci 를 쓴다).
+      - run: npm ci --prefix server
+      # 서버 테스트는 가짜 DB 를 쓴다 - DATABASE_URL 도 인터넷도 필요 없다.
+      - run: npm test --prefix server
 
   # ── 2. 통과했을 때만 배포 ────────────────────────────────────
   deploy:
