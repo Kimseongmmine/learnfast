@@ -13,6 +13,24 @@
 // 전부 손으로 짜야 해서 코드가 서너 배로 길어진다.
 const express = require("express");
 
+// ── 시작하자마자 환경변수부터 확인한다 ──────────────────────
+// 없는 채로 켜지면 "로그인은 되는 것 같은데 증표를 아무나 위조할 수 있는 서버" 가 된다.
+// 그래서 죽이는데, 죽는 이유가 배포 로그에서 한눈에 보여야 한다.
+// 로컬에서는 npm run dev 가 .env 를 읽어주고, 배포에서는 Render 대시보드가 넣어준다.
+const REQUIRED = ["DATABASE_URL", "JWT_SECRET"];
+const missing = REQUIRED.filter(function (k) { return !process.env[k]; });
+if (missing.length) {
+  console.error("");
+  console.error("=====================================================");
+  console.error(" MISSING ENV VARS: " + missing.join(", "));
+  console.error("");
+  console.error(" local  : use  npm run dev   (reads server/.env)");
+  console.error(" Render : add them in the service's Environment tab");
+  console.error("=====================================================");
+  console.error("");
+  process.exit(1);
+}
+
 const db = require("./db");
 const auth = require("./auth");
 
