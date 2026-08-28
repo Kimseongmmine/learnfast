@@ -1,6 +1,6 @@
 const path=require("path"); const fs=require("fs");
-const APP=path.resolve(__dirname, "..", "app.js");
-const CSS=path.resolve(__dirname, "..", "style.css");
+const APP=path.resolve(__dirname, "..", "client", "app.js");
+const CSS=path.resolve(__dirname, "..", "client", "style.css");
 let f=0; const ok=(n,c,e)=>{if(!c)f++;console.log((c?"ok   ":"FAIL ")+n+(c?"":"  "+(e||"")));};
 const RealDate=Date; let FIXED=new RealDate(2026,7,27,10,0,0);
 global.Date=class extends RealDate{constructor(...a){if(a.length===0)super(FIXED.getTime());else super(...a);}static now(){return FIXED.getTime();}};

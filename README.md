@@ -110,11 +110,12 @@
 ## 실행
 
 ```
+cd client
 python -m http.server 8000
 ```
 `http://localhost:8000`
 
-빌드 도구도 의존성도 없습니다. 앱은 파일 네 개(`index.html` `app.js` `style.css` `manifest.json`)가 전부입니다.
+빌드 도구도 의존성도 없습니다. 앱은 `client/` 안 파일 네 개(`index.html` `app.js` `style.css` `manifest.json`)가 전부입니다.
 
 저장소에 `server/` 폴더가 있지만 **앱은 그걸 쓰지 않습니다.** 만든 사람이 백엔드를 공부하려고 따로 짜는 것이고,
 나중에 로그인해서 기기 간 동기화를 하고 싶은 사람에게만 붙습니다. 지금은 `GET /health` 하나뿐이고,

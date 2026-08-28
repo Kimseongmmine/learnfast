@@ -4,7 +4,8 @@
 하루 계획을 짜주고, 배운 것을 다시 볼 때가 되면 **그 계획 안에** 넣어주는 웹앱.
 따로 복습 화면이 없다. 다시 읽는 대신 안 보고 떠올리게 한다.
 
-- 배포: GitHub Pages — https://kimseongmmine.github.io/learnfast/ (`git push` 하면 자동 갱신)
+- 배포: GitHub Pages — https://kimseongmmine.github.io/learnfast/
+  (`git push` → Actions 가 테스트를 돌리고, 통과하면 `client/` 를 올린다)
 - **API 키 없이도 모든 기능이 돈다.** 서버·계정·결제 없음
 
 ## 왜
@@ -47,7 +48,7 @@
 
 ## 스택 (변경 금지)
 - 바닐라 JS + HTML + CSS. **빌드도구·프레임워크·의존성 0**. 루트에 `package.json` 이 없다(서버는 `server/` 안에 따로 갖는다)
-- 앱은 파일 네 개: `index.html` / `app.js` / `style.css` / `manifest.json`
+- 앱은 `client/` 안 파일 네 개: `index.html` / `app.js` / `style.css` / `manifest.json`
 - 저장은 `localStorage` 뿐. 서버 없음. 데이터가 밖으로 나가지 않는다
 - **PC 기준으로 만들었다.** 드래그 편집은 브라우저 기본 API(`draggable`)를 쓴다
 - AI: Gemini 우선, 없으면 OpenRouter. 키는 브라우저에만. 없어도 전부 동작
@@ -68,6 +69,9 @@ if (typeof document !== "undefined") boot();
 ```
 각 테스트는 **별개 프로세스**로 돈다 — 전역(`document`·`localStorage`·`fetch`·`Date`)을 가짜로 주입하므로
 한 프로세스에서 여러 개를 돌리면 서로 오염된다. 네트워크도 실제 시각도 쓰지 않는다.
+
+**`push` 하면 GitHub Actions 가 같은 명령을 돌리고, 실패하면 배포가 안 된다.**
+깨진 앱이 사이트에 올라가는 길을 막는 관문이다(`.github/workflows/pages.yml`).
 
 ---
 
@@ -227,7 +231,7 @@ DOM 에서는 지우지 않는다 — 좁은 화면에 필요하고 `nav.test.js
 
 ## 함정 (다시 밟지 말 것)
 
-**줄바꿈이 섞여 있다.** `app.js` 는 LF, `style.css` 는 CRLF 인 구간이 있다.
+**줄바꿈이 섞여 있다.** `client/app.js` 는 LF, `client/style.css` 는 CRLF 인 구간이 있다.
 패치 스크립트는 파일에서 우세한 쪽을 감지해서 쓸 것:
 ```js
 const NL = ((s.match(/\r\n/g)||[]).length*2 > (s.match(/\n/g)||[]).length) ? '\r\n' : '\n';
@@ -287,13 +291,22 @@ Render 가 `main` 브랜치를 보고 있어서 **`git push` 하면 자동으로
 
 ```
 learnfast/
-├── app.js  index.html  style.css  manifest.json   ← 그대로. 빌드도구 없음
-├── tests/
-└── server/                                        ← 새로. Express + Postgres
-    ├── package.json  src/  .env(커밋 금지)
+├── client/                    ← 프론트. 의존성 0, 빌드도구 없음
+│   └── index.html  app.js  style.css  manifest.json
+├── tests/                     ← 프론트 테스트 15개
+├── server/                    ← 백. Express + Postgres
+│   ├── src/         index.js  db.js  auth.js
+│   ├── migrations/  DB 스키마를 만든 SQL. 번호 순서가 곧 의미다
+│   ├── tests/       서버 테스트
+│   └── .env         커밋 금지 · .env.example 만 커밋
+└── .github/workflows/pages.yml   ← client/ 를 Pages 로 올린다
 ```
-GitHub Pages 는 루트만 서빙하므로 `server/` 가 있어도 앱은 그대로 돈다.
-단 Pages 가 `server/*.js` 를 정적 파일로 노출하므로 **비밀값은 절대 커밋하지 않는다.**
+**DB 는 폴더가 아니다.** Supabase 안에서 도는 서비스라 저장소에 실체가 없다.
+저장소에 있어야 하는 건 **그 DB 를 어떻게 만들었는지 적은 SQL**(`server/migrations/`) 뿐이다.
+
+Pages 는 원래 루트나 `docs/` 만 서빙한다. `client/` 는 못 고르므로 **워크플로가 대신 올린다** —
+테스트가 통과해야 배포되고, 올라가는 건 `client/` 뿐이라 `server/` 는 사이트에 안 실린다.
+**그래도 저장소가 공개라 커밋된 것은 누구나 읽는다. 비밀값은 절대 커밋하지 않는다.**
 
 ### 로그인은 옵션이다 (핵심 제약)
 ```
