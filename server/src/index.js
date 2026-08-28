@@ -13,8 +13,23 @@
 // 전부 손으로 짜야 해서 코드가 서너 배로 길어진다.
 const express = require("express");
 
+const db = require("./db");
+const auth = require("./auth");
+
 // app 은 이 서버 그 자체다. 앞으로 "이 주소는 이렇게 답해라"를 전부 app 에 등록한다.
 const app = express();
+
+// ── 미들웨어: 들어오는 JSON 을 객체로 바꿔준다 ───────────────
+// 이게 없으면 req.body 가 undefined 다. 상대가 보낸 건 글자 뭉치일 뿐이라
+// 누군가는 그걸 JSON.parse 해줘야 하는데, 그 일을 하는 게 이 한 줄이다.
+//
+// limit 을 거는 이유: 기본값도 100kb 지만 명시해둔다. 회원가입에 필요한 건 이메일과
+// 비밀번호뿐인데 누가 10MB 를 보내면 그냥 메모리 낭비다.
+app.use(express.json({ limit: "100kb" }));
+
+// /auth 로 시작하는 요청은 auth.js 가 맡는다.
+// 즉 auth.js 안의 "/signup" 은 실제로는 "/auth/signup" 이 된다.
+app.use("/auth", auth.router);
 
 // ── 포트(port) ───────────────────────────────────────────────
 // 한 컴퓨터에는 프로그램이 여러 개 떠 있다. 포트는 그중 누구에게 온 요청인지 구분하는 번호다.
@@ -51,6 +66,17 @@ app.get("/health", function (req, res) {
   });
 });
 
+// ── GET /me — 증표가 진짜 도는지 확인하는 곳 ─────────────────
+// requireAuth 를 앞에 끼우면, 증표가 없거나 틀린 요청은 여기까지 오지도 못한다.
+// 이 한 줄짜리 조립이 2단계부터 모든 동기화 API 에 그대로 쓰인다.
+app.get("/me", auth.requireAuth, async function (req, res) {
+  // requireAuth 가 넣어둔 값. 증표 안에 있던 사용자 번호다.
+  const r = await db.query("select id, email, created_at from users where id = $1", [req.userId]);
+  // 증표는 멀쩡한데 그 사용자가 DB 에 없는 경우 - 탈퇴했거나 지워졌다.
+  if (!r.rows[0]) return res.status(401).json({ ok: false, error: "user_gone" });
+  res.json({ ok: true, user: auth.publicUser(r.rows[0]) });
+});
+
 // ── 없는 주소 처리 ───────────────────────────────────────────
 // 위에 등록한 어떤 규칙에도 안 걸린 요청이 여기까지 흘러온다.
 // 이걸 안 적어두면 express 가 HTML 로 된 기본 에러 페이지를 돌려주는데,
@@ -58,6 +84,21 @@ app.get("/health", function (req, res) {
 // 404 는 "그런 주소 없다"는 뜻의 표준 번호다.
 app.use(function (req, res) {
   res.status(404).json({ ok: false, error: "not_found" });
+});
+
+// ── 마지막 그물: 어디서든 터진 에러가 여기로 모인다 ──────────
+// 인자가 네 개(err 가 맨 앞)면 express 는 이걸 "에러 처리기" 로 알아본다. 순서가 아니라 개수로 구분한다.
+// Express 5 부터는 async 함수 안에서 던진 에러도 자동으로 여기까지 온다(4 에서는 직접 넘겨야 했다).
+//
+// 두 가지를 한다:
+//  1. 진짜 원인은 서버 로그에만 남긴다
+//  2. 밖으로는 짧은 말만 준다 - 에러 메시지에는 SQL 문이나 파일 경로가 섞여 나오는 일이 흔하고,
+//     그건 공격자에게 서버 내부 구조를 알려주는 꼴이다
+app.use(function (err, req, res, next) {
+  console.error("[error]", req.method, req.url, err.message);
+  // 보낼 응답을 이미 시작했으면 express 기본 처리에 맡긴다(헤더를 두 번 못 보낸다)
+  if (res.headersSent) return next(err);
+  res.status(500).json({ ok: false, error: "server_error" });
 });
 
 // ── 서버 켜기 ────────────────────────────────────────────────
