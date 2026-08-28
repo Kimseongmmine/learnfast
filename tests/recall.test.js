@@ -29,7 +29,7 @@ ok("구현은 아님", m.isRecallable("구현")===false, "");
 ok("문제도 아님", m.isRecallable("문제")===false, "");
 
 m.saveReviews([]);
-plan([{id:"b1",time:"09:00-10:00",text:"안 보고 써보기 — 정규화 1NF~3NF",goalId:"g1",taskId:"t1",kind:"개념",done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z"}]);
+plan([{id:"b1",time:"09:00-10:00",text:"안 보고 써보기 — 정규화 1NF~3NF",goalId:"g1",taskId:"t1",kind:"개념",done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString()}]);
 m.finishBlock(TODAY,{id:"b1",time:"09:00-10:00",text:"안 보고 써보기 — 정규화 1NF~3NF",goalId:"g1",taskId:"t1",kind:"개념"});
 let revs=m.loadReviews();
 ok("한 줄 없이도 복습이 생김", revs.length===1, JSON.stringify(revs));
@@ -55,7 +55,7 @@ ok("판정을 안 주면 예전대로(빈 줄=맞음)", r.box===2, String(r.box)
 
 // ================= 화면 =================
 m.saveReviews([{id:"rr",goalId:"g1",kind:"개념",text:"정규화 1NF~3NF",due:"2026-08-25",box:1,missed:"2NF",seen:0}]);
-plan([{id:"rb",time:"09:00-09:30",text:"복습 — 정규화 1NF~3NF",goalId:"g1",reviewId:"rr",kind:"개념",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]);
+plan([{id:"rb",time:"09:00-09:30",text:"복습 — 정규화 1NF~3NF",goalId:"g1",reviewId:"rr",kind:"개념",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}]);
 m.goTab("today"); m.openFocus("rb");
 ok("복습엔 맞음/틀림 버튼", !!btn("기억났다") && !!btn("안 나왔다"), allText().slice(0,200));
 ok("복습엔 완료 버튼 없음", !btn("완료"), "");
@@ -67,14 +67,14 @@ ok("블록도 완료됨", JSON.parse(mem["lf.plans"])[TODAY].blocks[0].done===tr
 
 // 틀림 경로
 m.saveReviews([{id:"rr2",goalId:"g1",kind:"유도",text:"뉴턴법 수렴차수",due:"2026-08-25",box:4,missed:"",seen:3}]);
-plan([{id:"rb2",time:"09:00-09:30",text:"복습 — 뉴턴법 수렴차수",goalId:"g1",reviewId:"rr2",kind:"유도",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]);
+plan([{id:"rb2",time:"09:00-09:30",text:"복습 — 뉴턴법 수렴차수",goalId:"g1",reviewId:"rr2",kind:"유도",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}]);
 m.openFocus("rb2");
 btn("안 나왔다").click();
 ok("안 나왔다 -> 상자 1", m.loadReviews()[0].box===1, JSON.stringify(m.loadReviews()[0]));
 ok("내일 다시", m.loadReviews()[0].due==="2026-08-28", m.loadReviews()[0].due);
 
 // 일반 블록은 여전히 완료 버튼
-plan([{id:"nb",time:"09:00-10:00",text:"SQL 조인",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]);
+plan([{id:"nb",time:"09:00-10:00",text:"SQL 조인",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}]);
 m.openFocus("nb");
 ok("일반 블록엔 완료 버튼", !!btn("완료"), "");
 ok("일반 블록엔 판정 줄 없음", byCls("recallrow").length===0, "");

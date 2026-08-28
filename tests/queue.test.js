@@ -80,7 +80,7 @@ ok("지난 마감은 무시", m.reviewQuota({goals:[{id:"a",title:"x",deadline:"
 // ================= 실행 모드가 문제를 띄운다 =================
 m.saveReviews([{id:"rq",goalId:"g1",kind:"개념",text:"정규화",q:"3NF의 조건을 쓰고 2NF와 무엇이 다른지 설명하라",due:"2026-08-25",box:1,seen:1,missed:"2NF 부분함수종속"}]);
 mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[
-  {id:"rb",time:"09:00-09:30",text:"복습 — 정규화",goalId:"g1",reviewId:"rq",kind:"개념",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]}});
+  {id:"rb",time:"09:00-09:30",text:"복습 — 정규화",goalId:"g1",reviewId:"rq",kind:"개념",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}]}});
 m.goTab("today"); m.openFocus("rb");
 ok("문제가 뜬다", byCls("recallq").length===1, String(byCls("recallq").length));
 ok("문제 내용", allText().indexOf("3NF의 조건")>=0, "");
@@ -90,7 +90,7 @@ ok("판정 버튼 그대로", !!btn("기억났다") && !!btn("안 나왔다"), "
 // leech 는 쪼개라고 알린다
 m.saveReviews([{id:"rl",goalId:"g1",kind:"개념",text:"x",due:"2026-08-25",box:1,seen:7,leech:true}]);
 mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[
-  {id:"rb2",time:"09:00-09:30",text:"복습 — x",goalId:"g1",reviewId:"rl",kind:"개념",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]}});
+  {id:"rb2",time:"09:00-09:30",text:"복습 — x",goalId:"g1",reviewId:"rl",kind:"개념",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}]}});
 m.openFocus("rb2");
 ok("leech 안내", allText().indexOf("여러 번 놓친 항목")>=0, "");
 

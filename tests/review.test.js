@@ -100,8 +100,8 @@ ok("과제 블록은 taskId 유지", blocks.filter(b=>b.taskId).length>=1, "");
 
 // ================= 실행 모드에서 한 줄 =================
 mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
-  {id:"b1",time:"09:00-11:00",text:"복습 — 정규화 1NF~3NF",goalId:"g1",reviewId:"rr",kind:"개념",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true},
-  {id:"b2",time:"11:00-12:30",text:"SQL 조인 쿼리 10개 짜기",goalId:"g1",taskId:"t2",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T02:00:00.000Z",onTime:true}
+  {id:"b1",time:"09:00-11:00",text:"복습 — 정규화 1NF~3NF",goalId:"g1",reviewId:"rr",kind:"개념",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true},
+  {id:"b2",time:"11:00-12:30",text:"SQL 조인 쿼리 10개 짜기",goalId:"g1",taskId:"t2",kind:"구현",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,11,0,0).toISOString(),onTime:true}
 ]}});
 m.goTab("today");
 m.openFocus("b1");
@@ -132,7 +132,7 @@ ok("초안은 비워짐", true, "");
 
 // ================= 막힘 =================
 mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
-  {id:"b3",time:"09:00-11:00",text:"CUDA 커널 짜기",goalId:"g1",taskId:"t2",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}
+  {id:"b3",time:"09:00-11:00",text:"CUDA 커널 짜기",goalId:"g1",taskId:"t2",kind:"구현",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}
 ]}});
 m.openFocus("b3");
 ok("막힘 프롬프트 버튼", !!btn("막힘 — 다음 한 걸음만"), "");

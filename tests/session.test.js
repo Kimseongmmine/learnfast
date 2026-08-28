@@ -20,7 +20,7 @@ const allText=()=>walk(root,()=>true,[]).map(n=>n.textContent).join(" | ");
 const TODAY="2026-08-27";
 mem["lf.profile"]=JSON.stringify({goals:[{id:"g1",title:"데이터베이스",tasks:[{id:"t1",text:"SQL 조인 쿼리 10개 짜기",done:false,kind:"구현"}]}]});
 mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",generatedAt:"x",blocks:[
-  {id:"b1",time:"09:00-11:00",text:"SQL 조인 쿼리 10개 짜기",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}
+  {id:"b1",time:"09:00-11:00",text:"SQL 조인 쿼리 10개 짜기",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}
 ]}});
 const m=require(APP);
 
@@ -66,7 +66,7 @@ ok("21일 밖은 무시", m.sessionStats(21,TODAY)===null, JSON.stringify(m.sess
 // 실행 모드가 경과를 보여준다
 m.saveSessions([]);
 mem["lf.plans"]=JSON.stringify({[TODAY]:{source:"template",blocks:[
-  {id:"b3",time:"09:00-11:00",text:"x",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:"2026-08-27T00:02:00.000Z",onTime:true}]}});
+  {id:"b3",time:"09:00-11:00",text:"x",goalId:"g1",taskId:"t1",kind:"구현",core:true,done:false,started:true,startedAt:new RealDate(2026,7,27,9,2,0).toISOString(),onTime:true}]}});
 FIXED=new RealDate(2026,7,27,10,2,0);
 m.openFocus("b3");
 ok("예상과 실제를 같이", /예상 120분 · 지금까지 60분/.test(allText()), (allText().match(/예상[^|]*/)||[""])[0]);
